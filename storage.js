@@ -42,19 +42,13 @@ class CloudStorageService {
                     console.log('Converted escaped newlines in private key');
                 }
 
-                // Create an explicit auth client for serverless environments
-                // This prevents the "Could not load default credentials" error
-                const auth = new GoogleAuth({
-                    projectId: credentialsJson.project_id,
-                    credentials: {
-                        client_email: credentialsJson.client_email,
-                        private_key: privateKey
-                    },
-                    scopes: ['https://www.googleapis.com/auth/cloud-platform']
-                });
-
-                storageConfig.authClient = auth;
-                console.log('Successfully created GoogleAuth client with credentials');
+                // Pass credentials directly to Storage constructor (not authClient)
+                // This is the recommended way for serverless environments
+                storageConfig.credentials = {
+                    ...credentialsJson,
+                    private_key: privateKey  // Use the fixed private key
+                };
+                console.log('Successfully set credentials for Storage client');
             } catch (error) {
                 console.error('Error parsing service account key:', error.message);
                 console.error('Stack:', error.stack);
@@ -69,8 +63,9 @@ class CloudStorageService {
 
         console.log('Storage config being used:', {
             projectId: storageConfig.projectId,
-            hasAuthClient: !!storageConfig.authClient,
-            hasKeyFilename: !!storageConfig.keyFilename
+            hasCredentials: !!storageConfig.credentials,
+            hasKeyFilename: !!storageConfig.keyFilename,
+            client_email: storageConfig.credentials?.client_email
         });
 
         this.storage = new Storage(storageConfig);
