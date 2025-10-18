@@ -34,10 +34,10 @@ const serviceAccountKey = new gcp.serviceaccount.Key("halloween-contest-key", {
     publicKeyType: "TYPE_X509_PEM_FILE",
 });
 
-// Grant the service account permission to upload to the bucket
-const bucketIAMPermission = new gcp.storage.BucketIAMMember("bucket-uploader", {
+// Grant the service account permission to read/write to the bucket
+const bucketIAMPermission = new gcp.storage.BucketIAMMember("bucket-admin", {
     bucket: bucket.name,
-    role: "roles/storage.objectCreator",
+    role: "roles/storage.objectAdmin",
     member: pulumi.interpolate`serviceAccount:${serviceAccount.email}`,
 });
 
