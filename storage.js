@@ -1,4 +1,5 @@
 const { Storage } = require('@google-cloud/storage');
+const { GoogleAuth } = require('google-auth-library');
 const path = require('path');
 
 class CloudStorageService {
@@ -20,12 +21,26 @@ class CloudStorageService {
             try {
                 console.log('Attempting to decode base64 service account key...');
                 // Decode base64 and parse JSON credentials
-                const credentials = JSON.parse(
+                const credentialsJson = JSON.parse(
                     Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8')
                 );
-                storageConfig.credentials = credentials;
-                console.log('Successfully parsed service account credentials');
-                console.log('Service account email:', credentials.client_email);
+
+                // Log credential structure (sanitized)
+                console.log('Credentials structure:', {
+                    type: credentialsJson.type,
+                    project_id: credentialsJson.project_id,
+                    client_email: credentialsJson.client_email,
+                    has_private_key: !!credentialsJson.private_key,
+                    private_key_id: credentialsJson.private_key_id ? 'present' : 'missing'
+                });
+
+                // Use explicit credentials format for serverless environments
+                // Pass only the essential fields
+                storageConfig.credentials = {
+                    client_email: credentialsJson.client_email,
+                    private_key: credentialsJson.private_key
+                };
+                console.log('Successfully parsed and set service account credentials');
             } catch (error) {
                 console.error('Error parsing service account key:', error.message);
                 console.error('Stack:', error.stack);
@@ -37,6 +52,13 @@ class CloudStorageService {
         } else {
             console.warn('No Google Cloud credentials configured! Upload will fail.');
         }
+
+        console.log('Storage config being used:', {
+            projectId: storageConfig.projectId,
+            hasCredentials: !!storageConfig.credentials,
+            hasKeyFilename: !!storageConfig.keyFilename,
+            client_email: storageConfig.credentials?.client_email
+        });
 
         this.storage = new Storage(storageConfig);
         this.bucketName = process.env.GOOGLE_CLOUD_BUCKET || 'halloween-contest-images';
