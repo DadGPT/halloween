@@ -914,18 +914,22 @@
 
                     <!-- Contest Timing Controls -->
                     <div class="form-card">
-                        <h2>
-                            <span>⏰</span>
-                            <span>Contest Timing</span>
+                        <h2 style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="toggleTimingCard()">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span>⏰</span>
+                                <span>Contest Timing</span>
+                            </div>
+                            <span id="timingCardToggle" style="font-size: 0.8em; color: rgba(255, 255, 255, 0.6);">▼</span>
                         </h2>
 
-                        <div class="form-group">
-                            <label for="timingMode">Timing Mode</label>
-                            <select id="timingMode" onchange="toggleTimingSettings()">
-                                <option value="disabled">Disabled (Always Allow Voting)</option>
-                                <option value="enabled">Enabled (Time-Based Phases)</option>
-                            </select>
-                        </div>
+                        <div id="timingCardContent">
+                            <div class="form-group">
+                                <label for="timingMode">Timing Mode</label>
+                                <select id="timingMode" onchange="toggleTimingSettings()">
+                                    <option value="disabled">Disabled (Always Allow Voting)</option>
+                                    <option value="enabled">Enabled (Time-Based Phases)</option>
+                                </select>
+                            </div>
 
                         <div id="timingSettings" style="display: none;">
                             <div class="form-group">
@@ -1005,6 +1009,7 @@
                                     <button class="btn btn-secondary btn-full" onclick="setPhase('auto')">Return to Auto</button>
                                 </div>
                             </div>
+                        </div>
                         </div>
                     </div>
 
@@ -1637,19 +1642,44 @@
             manualOverride: null // 'preshow', 'voting', 'closed', or null for auto
         };
 
+        // Toggle timing card expansion
+        function toggleTimingCard() {
+            const content = document.getElementById('timingCardContent');
+            const toggle = document.getElementById('timingCardToggle');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '▶';
+            }
+        }
+
         function toggleTimingSettings() {
             const mode = document.getElementById('timingMode').value;
             const settings = document.getElementById('timingSettings');
             const overrides = document.getElementById('manualOverrides');
+            const content = document.getElementById('timingCardContent');
+            const toggle = document.getElementById('timingCardToggle');
 
             if (mode === 'enabled') {
                 settings.style.display = 'block';
                 overrides.style.display = 'block';
                 timingSettings.enabled = true;
+
+                // Expand the card when enabling timing
+                content.style.display = 'block';
+                toggle.textContent = '▼';
             } else {
                 settings.style.display = 'none';
                 overrides.style.display = 'none';
                 timingSettings.enabled = false;
+
+                // Optionally collapse when disabling (user can still manually expand)
+                // Uncomment the next two lines if you want it to auto-collapse on disable:
+                // content.style.display = 'none';
+                // toggle.textContent = '▶';
             }
 
             updateTimingStatus();
@@ -1724,6 +1754,20 @@
                 document.getElementById('resultsTime').value = timingSettings.resultsTime;
 
                 toggleTimingSettings();
+            }
+
+            // Set initial collapsed/expanded state based on timing enabled status
+            const content = document.getElementById('timingCardContent');
+            const toggle = document.getElementById('timingCardToggle');
+
+            if (!timingSettings.enabled) {
+                // Collapse if timing is disabled
+                content.style.display = 'none';
+                toggle.textContent = '▶';
+            } else {
+                // Expand if timing is enabled
+                content.style.display = 'block';
+                toggle.textContent = '▼';
             }
         }
 
