@@ -35,10 +35,12 @@ class CloudStorageService {
                 });
 
                 // Use explicit credentials format for serverless environments
-                // Pass only the essential fields
+                // Pass all required fields: client_email, project_id, private_key, client_id
                 storageConfig.credentials = {
                     client_email: credentialsJson.client_email,
-                    private_key: credentialsJson.private_key
+                    private_key: credentialsJson.private_key,
+                    project_id: credentialsJson.project_id,
+                    client_id: credentialsJson.client_id
                 };
                 console.log('Successfully parsed and set service account credentials');
             } catch (error) {
