@@ -34,13 +34,21 @@ class CloudStorageService {
                     private_key_id: credentialsJson.private_key_id ? 'present' : 'missing'
                 });
 
+                // Fix private key newlines if they were escaped during environment variable storage
+                let privateKey = credentialsJson.private_key;
+                if (privateKey && !privateKey.includes('\n')) {
+                    // If the key doesn't contain actual newlines, they might be escaped as \\n
+                    privateKey = privateKey.replace(/\\n/g, '\n');
+                    console.log('Converted escaped newlines in private key');
+                }
+
                 // Create an explicit auth client for serverless environments
                 // This prevents the "Could not load default credentials" error
                 const auth = new GoogleAuth({
                     projectId: credentialsJson.project_id,
                     credentials: {
                         client_email: credentialsJson.client_email,
-                        private_key: credentialsJson.private_key
+                        private_key: privateKey
                     },
                     scopes: ['https://www.googleapis.com/auth/cloud-platform']
                 });
