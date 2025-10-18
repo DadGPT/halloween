@@ -1484,14 +1484,35 @@
         }
 
         // Clear all data
-        function clearAllData() {
-            if (confirm('This will delete all entries and votes. Are you sure?')) {
-                entries = [];
-                saveEntries();
+        async function clearAllData() {
+            if (!confirm('This will permanently delete ALL contest entries and votes from the database. This cannot be undone! Are you sure?')) {
+                return;
+            }
+
+            try {
+                console.log('Deleting all entries from database...');
+                const response = await fetch('/api/entries', {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Delete all failed');
+                }
+
+                const result = await response.json();
+                console.log('Delete all successful:', result);
+
+                // Reload entries from server (should be empty now)
+                await loadEntries();
                 renderEntries();
                 updateStats();
-                showToast('All data cleared');
+
+                showToast(`All data cleared! (${result.deletedCount} entries deleted)`);
                 toggleMenu();
+            } catch (error) {
+                console.error('Clear all data error:', error);
+                showToast('Failed to clear data: ' + error.message);
             }
         }
 

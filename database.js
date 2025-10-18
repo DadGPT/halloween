@@ -148,6 +148,42 @@ class DatabaseService {
         }
     }
 
+    // Delete all entries
+    async deleteAllEntries() {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
+        try {
+            console.log('Deleting all contest entries...');
+
+            // Get count before deletion
+            const { count: beforeCount } = await this.supabase
+                .from('contest_entries')
+                .select('*', { count: 'exact', head: true });
+
+            console.log(`Found ${beforeCount} entries to delete`);
+
+            // Delete all entries from contest_entries table
+            // This will also cascade delete related votes due to foreign key constraint
+            const { error } = await this.supabase
+                .from('contest_entries')
+                .delete()
+                .neq('id', 0); // Delete where id != 0 (which matches all rows)
+
+            if (error) {
+                console.error('Error deleting all entries:', error);
+                throw error;
+            }
+
+            console.log(`Successfully deleted all ${beforeCount} entries`);
+            return { success: true, deletedCount: beforeCount };
+        } catch (error) {
+            console.error('Failed to delete all entries:', error.message);
+            throw error;
+        }
+    }
+
     // Increment vote for an entry in a specific category
     async addVote(entryId, category) {
         if (!this.initialized || !this.supabase) {

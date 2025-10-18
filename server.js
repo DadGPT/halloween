@@ -410,6 +410,28 @@ app.delete('/api/entries/:id', async (req, res) => {
     }
 });
 
+// Delete ALL entries
+app.delete('/api/entries', async (req, res) => {
+    try {
+        console.log('=== Delete ALL Entries Request ===');
+
+        const result = await database.deleteAllEntries();
+        console.log('All entries deleted successfully:', result);
+
+        res.json({
+            success: true,
+            message: `All entries deleted successfully! (${result.deletedCount} entries removed)`,
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        console.error('Delete all entries error:', error);
+        res.status(500).json({
+            error: 'Failed to delete all entries',
+            details: error.message
+        });
+    }
+});
+
 // Serve uploaded images
 app.use('/uploads', express.static(uploadsDir));
 
