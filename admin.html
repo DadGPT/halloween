@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Halloween Contest - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #000;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Mobile Frame for Desktop */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                padding: 20px;
+            }
+
+            .mobile-frame {
+                width: 390px;
+                height: 844px;
+                background: #000;
+                border-radius: 40px;
+                box-shadow: 0 0 0 12px #222, 0 0 0 14px #000, 0 20px 60px rgba(0,0,0,0.5);
+                overflow: hidden;
+                position: relative;
+            }
+
+            .mobile-frame::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 150px;
+                height: 30px;
+                background: #000;
+                border-radius: 0 0 20px 20px;
+                z-index: 10;
+            }
+
+            .app-container {
+                height: 100%;
+                position: relative;
+                overflow: hidden;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .mobile-frame {
+                width: 100vw;
+                height: 100vh;
+            }
+
+            .app-container {
+                width: 100vw;
+                height: 100vh;
+                position: relative;
+                overflow: hidden;
+            }
+        }
+
+        /* App Styles */
+        .app-container {
+            background: linear-gradient(180deg, #1a0033 0%, #330066 50%, #4d0099 100%);
+            position: relative;
+        }
+
+        .app-content {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: rgba(26, 0, 51, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            padding: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.3em;
+            color: #ff6b00;
+            font-weight: 700;
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 107, 0, 0.2);
+            border: 2px solid #ff6b00;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 107, 0, 0.4);
+        }
+
+        .menu-btn span {
+            width: 20px;
+            height: 2px;
+            background: #ff6b00;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Side Menu */
+        .side-menu {
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 75%;
+            max-width: 300px;
+            height: 100%;
+            background: rgba(26, 0, 51, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 200;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+        }
+
+        .side-menu.active {
+            right: 0;
+        }
+
+        .menu-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 107, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-title {
+            color: #ff6b00;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .close-menu {
+            width: 30px;
+            height: 30px;
+            background: transparent;
+            border: 2px solid #ff6b00;
+            border-radius: 50%;
+            color: #ff6b00;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .menu-items {
+            padding: 20px;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 107, 0, 0.1);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+
+        .menu-item:active {
+            background: rgba(255, 107, 0, 0.3);
+            transform: scale(0.98);
+        }
+
+        .menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 199;
+            display: none;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px 15px 30px;
+        }
+
+        /* Add Entry Form */
+        .form-card {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+        }
+
+        .form-card h2 {
+            color: #ff6b00;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #ff8c00;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 107, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #ff6b00;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Avatar Tabs */
+        .avatar-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .avatar-tab {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 107, 0, 0.1);
+            border: 2px solid rgba(255, 107, 0, 0.3);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .avatar-tab.active {
+            background: rgba(255, 107, 0, 0.3);
+            border-color: #ff6b00;
+            color: #ff8c00;
+        }
+
+        .avatar-content {
+            display: none;
+        }
+
+        /* Emoji Grid */
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .emoji-option {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .emoji-option:active {
+            transform: scale(0.9);
+        }
+
+        .emoji-option.selected {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.2);
+        }
+
+        /* Image Upload */
+        .upload-area {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .upload-label {
+            display: block;
+            padding: 30px;
+            border: 3px dashed rgba(255, 107, 0, 0.5);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-label:hover {
+            border-color: #ff6b00;
+            background: rgba(255, 107, 0, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+        .image-preview {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .image-preview img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 3px solid #ff6b00;
+        }
+
+        .image-preview-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 0, 0, 0.8);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff00, #00cc00);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 107, 0, 0.2);
+            color: #ff6b00;
+            border: 2px solid #ff6b00;
+        }
+
+        .btn-danger {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+            border: 2px solid #ff4444;
+        }
+
+        .btn-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Entries List */
+        .entries-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+        }
+
+        .entries-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .entries-header h2 {
+            color: #ff6b00;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-badge {
+            background: rgba(255, 107, 0, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #ff8c00;
+            border: 1px solid #ff6b00;
+        }
+
+        /* Entry Cards */
+        .entries-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .entry-card {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid rgba(255, 107, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .entry-card:active {
+            transform: scale(0.98);
+            background: rgba(255, 107, 0, 0.1);
+        }
+
+        .entry-avatar {
+            font-size: 3em;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .entry-avatar img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid #ff6b00;
+        }
+
+        .entry-info {
+            flex: 1;
+        }
+
+        .entry-name {
+            color: #ff8c00;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .entry-type {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+
+        .entry-votes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .vote-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .vote-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .remove-vote-btn {
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff4444;
+            border-radius: 50%;
+            color: #ff4444;
+            font-size: 0.8em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+        }
+
+        .remove-vote-btn:hover {
+            background: rgba(255, 0, 0, 0.4);
+        }
+
+        .remove-vote-btn:active {
+            transform: scale(0.9);
+        }
+
+        .delete-entry {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff4444;
+            border-radius: 50%;
+            color: #ff4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        .delete-entry:active {
+            transform: scale(0.9);
+            background: rgba(255, 0, 0, 0.4);
+        }
+
+        .edit-entry {
+            position: absolute;
+            top: 10px;
+            right: 50px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 107, 0, 0.2);
+            border: 2px solid #ff6b00;
+            border-radius: 50%;
+            color: #ff6b00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .edit-entry:active {
+            transform: scale(0.9);
+            background: rgba(255, 107, 0, 0.4);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Results Modal */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 500;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 50px;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a0033, #330066);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 500px;
+            border: 2px solid #ff6b00;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #ff6b00;
+            font-size: 1.5em;
+        }
+
+        .close-modal {
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff4444;
+            border-radius: 50%;
+            color: #ff4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5em;
+        }
+
+        .results-category {
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .results-category h3 {
+            color: #ff8c00;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .winner {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 12px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .winner .avatar {
+            font-size: 2.5em;
+        }
+
+        .winner .avatar img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .winner-info {
+            flex: 1;
+        }
+
+        .winner-name {
+            color: #ffd700;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .winner-votes {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+        }
+
+        .no-winner {
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+
+        /* Enhanced Results Styles */
+        .stats-summary {
+            background: rgba(255, 107, 0, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 107, 0, 0.3);
+        }
+
+        .stats-summary h3 {
+            color: #ff6b00;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .summary-stats {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            display: block;
+            color: #ff8c00;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .category-stats {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .total-votes {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 12px;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .other-entries {
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .other-entries h4 {
+            color: #ff8c00;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .entry-result {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .entry-result.first-place {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .rank {
+            color: #ff8c00;
+            font-weight: 600;
+            min-width: 20px;
+        }
+
+        .result-avatar {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        .result-avatar img {
+            width: 30px;
+            height: 30px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .result-name {
+            flex: 1;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .result-votes {
+            color: #ff8c00;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        /* Toast */
+        .toast {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 2px solid #ff6b00;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 600;
+            max-width: 80%;
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-frame">
+        <div class="app-container">
+            <div class="app-content">
+                <!-- Header -->
+                <div class="header">
+                    <div class="header-content">
+                        <div class="header-title">
+                            <span style="font-size: 1.5em;">⚙️</span>
+                            <h1>Admin Panel</h1>
+                        </div>
+                        <div class="menu-btn" onclick="toggleMenu()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="main-content">
+                    <!-- Add Entry Form -->
+                    <div class="form-card">
+                        <h2>
+                            <span>➕</span>
+                            <span>Add New Entry</span>
+                        </h2>
+                        
+                        <div class="form-group">
+                            <label>Name / Team Name</label>
+                            <input type="text" id="entryName" placeholder="e.g., The Addams Family">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Entry Type</label>
+                            <select id="entryType">
+                                <option value="individual">Individual</option>
+                                <option value="couple">Couple/Group</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Avatar Selection</label>
+                            <div class="avatar-tabs">
+                                <button class="avatar-tab active" onclick="switchAvatarTab('emoji')">Emoji</button>
+                                <button class="avatar-tab" onclick="switchAvatarTab('upload')">Upload Image</button>
+                            </div>
+                            
+                            <div class="avatar-content" id="emojiContent" style="display: block;">
+                                <div class="emoji-grid" id="emojiGrid">
+                                    <div class="emoji-option" data-emoji="👻">👻</div>
+                                    <div class="emoji-option" data-emoji="🧛‍♂️">🧛‍♂️</div>
+                                    <div class="emoji-option" data-emoji="🧛‍♀️">🧛‍♀️</div>
+                                    <div class="emoji-option" data-emoji="🧟‍♂️">🧟‍♂️</div>
+                                    <div class="emoji-option" data-emoji="🧟‍♀️">🧟‍♀️</div>
+                                    <div class="emoji-option" data-emoji="🎃">🎃</div>
+                                    <div class="emoji-option" data-emoji="💀">💀</div>
+                                    <div class="emoji-option" data-emoji="☠️">☠️</div>
+                                    <div class="emoji-option" data-emoji="🤡">🤡</div>
+                                    <div class="emoji-option" data-emoji="👹">👹</div>
+                                    <div class="emoji-option" data-emoji="👺">👺</div>
+                                    <div class="emoji-option" data-emoji="🧙‍♀️">🧙‍♀️</div>
+                                    <div class="emoji-option" data-emoji="🧙‍♂️">🧙‍♂️</div>
+                                    <div class="emoji-option" data-emoji="🦇">🦇</div>
+                                    <div class="emoji-option" data-emoji="🕷️">🕷️</div>
+                                    <div class="emoji-option" data-emoji="🕸️">🕸️</div>
+                                    <div class="emoji-option" data-emoji="👽">👽</div>
+                                    <div class="emoji-option" data-emoji="🤖">🤖</div>
+                                    <div class="emoji-option" data-emoji="🐺">🐺</div>
+                                    <div class="emoji-option" data-emoji="🦴">🦴</div>
+                                    <div class="emoji-option" data-emoji="🧚‍♀️">🧚‍♀️</div>
+                                    <div class="emoji-option" data-emoji="🧜‍♀️">🧜‍♀️</div>
+                                    <div class="emoji-option" data-emoji="🧞‍♂️">🧞‍♂️</div>
+                                    <div class="emoji-option" data-emoji="🦹‍♂️">🦹‍♂️</div>
+                                    <div class="emoji-option" data-emoji="🦸‍♀️">🦸‍♀️</div>
+                                </div>
+                            </div>
+                            
+                            <div class="avatar-content" id="uploadContent">
+                                <div class="upload-area">
+                                    <label for="imageUpload" class="upload-label">
+                                        <div class="upload-icon">📸</div>
+                                        <div class="upload-text">Tap to upload photo</div>
+                                    </label>
+                                    <input type="file" id="imageUpload" class="upload-input" accept="image/*" onchange="handleImageUpload(event)">
+                                    <div class="image-preview" id="imagePreview">
+                                        <div class="image-preview-container">
+                                            <img id="previewImg" src="" alt="Preview">
+                                            <div class="remove-image" onclick="removeImage()">×</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-full" onclick="addEntry()">Add Entry</button>
+                        </div>
+                    </div>
+
+                    <!-- Contest Timing Controls -->
+                    <div class="form-card">
+                        <h2>
+                            <span>⏰</span>
+                            <span>Contest Timing</span>
+                        </h2>
+
+                        <div class="form-group">
+                            <label for="timingMode">Timing Mode</label>
+                            <select id="timingMode" onchange="toggleTimingSettings()">
+                                <option value="disabled">Disabled (Always Allow Voting)</option>
+                                <option value="enabled">Enabled (Time-Based Phases)</option>
+                            </select>
+                        </div>
+
+                        <div id="timingSettings" style="display: none;">
+                            <div class="form-group">
+                                <label>Pre-Show Period (Upload Only)</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time</label>
+                                        <input type="datetime-local" id="preShowStart" value="2024-10-25T18:30">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">End Time</label>
+                                        <input type="datetime-local" id="preShowEnd" value="2024-10-25T19:45">
+                                    </div>
+                                </div>
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
+                                    Guests can upload costumes but cannot vote
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Voting Period</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time</label>
+                                        <input type="datetime-local" id="votingStart" value="2024-10-25T19:45">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">End Time</label>
+                                        <input type="datetime-local" id="votingEnd" value="2024-10-25T20:15">
+                                    </div>
+                                </div>
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
+                                    Active voting period for all categories
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Post-Voting Period (Results)</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time</label>
+                                        <input type="datetime-local" id="postVotingStart" value="2024-10-25T20:15">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Results Time</label>
+                                        <input type="datetime-local" id="resultsTime" value="2024-10-25T20:30">
+                                    </div>
+                                </div>
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
+                                    Voting closed, preparing for winners announcement
+                                </div>
+                            </div>
+
+                            <div class="action-buttons">
+                                <button class="btn btn-primary btn-full" onclick="saveTimingSettings()">Save Timing Settings</button>
+                            </div>
+                        </div>
+
+                        <div class="timing-status" id="timingStatus">
+                            <div style="background: rgba(255, 107, 0, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 107, 0, 0.3);">
+                                <div style="color: #ff6b00; font-weight: 600; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;">
+                                    <span id="phaseIcon">🔧</span>
+                                    <span>Current Status:</span>
+                                </div>
+                                <div style="color: rgba(255, 255, 255, 0.8); font-size: 1.1em;" id="currentPhase">Timing controls disabled - voting always available</div>
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.9em; margin-top: 5px;" id="nextPhase"></div>
+                            </div>
+                        </div>
+
+                        <div id="manualOverrides" style="display: none; margin-top: 15px;">
+                            <div style="background: rgba(255, 0, 0, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 0, 0, 0.3);">
+                                <div style="color: #ff4444; font-weight: 600; margin-bottom: 10px;">⚠️ Manual Phase Override</div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-secondary" onclick="setPhase('preshow')">Force Pre-Show</button>
+                                    <button class="btn btn-primary" onclick="setPhase('voting')">Force Voting</button>
+                                    <button class="btn btn-danger" onclick="setPhase('closed')">Force Closed</button>
+                                    <button class="btn btn-secondary btn-full" onclick="setPhase('auto')">Return to Auto</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Entries List -->
+                    <div class="entries-section">
+                        <div class="entries-header">
+                            <h2>
+                                <span>📋</span>
+                                <span>Current Entries</span>
+                            </h2>
+                            <div class="stats-badge" id="entriesCount">0 entries</div>
+                        </div>
+                        
+                        <div class="entries-grid" id="entriesList">
+                            <!-- Entries will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Side Menu -->
+                <div class="side-menu" id="sideMenu">
+                    <div class="menu-header">
+                        <div class="menu-title">Menu</div>
+                        <div class="close-menu" onclick="toggleMenu()">×</div>
+                    </div>
+                    <div class="menu-items">
+                        <a href="/vote" class="menu-item">🗳️ Voting Interface</a>
+                        <a href="#" class="menu-item" onclick="showResults(); return false;">📊 View Results</a>
+                        <a href="#" class="menu-item" onclick="resetAllVotes(); return false;">🔄 Reset All Votes</a>
+                        <a href="#" class="menu-item" onclick="clearAllData(); return false;">🗑️ Clear All Data</a>
+                        <a href="#" class="menu-item" onclick="exportData(); return false;">💾 Export Data</a>
+                    </div>
+                </div>
+                <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+                <!-- Results Modal -->
+                <div class="modal" id="resultsModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>🏆 Contest Results</h2>
+                            <div class="close-modal" onclick="closeModal()">×</div>
+                        </div>
+                        <div id="resultsContent">
+                            <!-- Results will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Entry Modal -->
+                <div class="modal" id="editModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>✎ Edit Entry</h2>
+                            <div class="close-modal" onclick="closeEditModal()">×</div>
+                        </div>
+                        <div id="editFormContainer">
+                            <div class="form-group">
+                                <label>Name / Team Name</label>
+                                <input type="text" id="editEntryName" placeholder="e.g., The Addams Family">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Entry Type</label>
+                                <select id="editEntryType">
+                                    <option value="individual">Individual</option>
+                                    <option value="couple">Couple/Group</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Avatar Selection</label>
+                                <div class="avatar-tabs">
+                                    <button class="avatar-tab" id="editEmojiTab" onclick="switchEditAvatarTab('emoji')">Emoji</button>
+                                    <button class="avatar-tab" id="editUploadTab" onclick="switchEditAvatarTab('upload')">Upload Image</button>
+                                </div>
+                                
+                                <div class="avatar-content" id="editEmojiContent">
+                                    <div class="emoji-grid" id="editEmojiGrid">
+                                        <div class="emoji-option" data-emoji="👻">👻</div>
+                                        <div class="emoji-option" data-emoji="🧛‍♂️">🧛‍♂️</div>
+                                        <div class="emoji-option" data-emoji="🧛‍♀️">🧛‍♀️</div>
+                                        <div class="emoji-option" data-emoji="🧟‍♂️">🧟‍♂️</div>
+                                        <div class="emoji-option" data-emoji="🧟‍♀️">🧟‍♀️</div>
+                                        <div class="emoji-option" data-emoji="🎃">🎃</div>
+                                        <div class="emoji-option" data-emoji="💀">💀</div>
+                                        <div class="emoji-option" data-emoji="☠️">☠️</div>
+                                        <div class="emoji-option" data-emoji="🤡">🤡</div>
+                                        <div class="emoji-option" data-emoji="👹">👹</div>
+                                        <div class="emoji-option" data-emoji="👺">👺</div>
+                                        <div class="emoji-option" data-emoji="🧙‍♀️">🧙‍♀️</div>
+                                        <div class="emoji-option" data-emoji="🧙‍♂️">🧙‍♂️</div>
+                                        <div class="emoji-option" data-emoji="🦇">🦇</div>
+                                        <div class="emoji-option" data-emoji="🕷️">🕷️</div>
+                                        <div class="emoji-option" data-emoji="🕸️">🕸️</div>
+                                        <div class="emoji-option" data-emoji="👽">👽</div>
+                                        <div class="emoji-option" data-emoji="🤖">🤖</div>
+                                        <div class="emoji-option" data-emoji="🐺">🐺</div>
+                                        <div class="emoji-option" data-emoji="🦴">🦴</div>
+                                        <div class="emoji-option" data-emoji="🧚‍♀️">🧚‍♀️</div>
+                                        <div class="emoji-option" data-emoji="🧜‍♀️">🧜‍♀️</div>
+                                        <div class="emoji-option" data-emoji="🧞‍♂️">🧞‍♂️</div>
+                                        <div class="emoji-option" data-emoji="🦹‍♂️">🦹‍♂️</div>
+                                        <div class="emoji-option" data-emoji="🦸‍♀️">🦸‍♀️</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="avatar-content" id="editUploadContent">
+                                    <div class="upload-area">
+                                        <label for="editImageUpload" class="upload-label">
+                                            <div class="upload-icon">📸</div>
+                                            <div class="upload-text">Tap to upload photo</div>
+                                        </label>
+                                        <input type="file" id="editImageUpload" class="upload-input" accept="image/*" onchange="handleEditImageUpload(event)">
+                                        <div class="image-preview" id="editImagePreview">
+                                            <div class="image-preview-container">
+                                                <img id="editPreviewImg" src="" alt="Preview">
+                                                <div class="remove-image" onclick="removeEditImage()">×</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                                <button class="btn btn-primary" onclick="saveEditEntry()">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toast -->
+                <div class="toast" id="toast"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        let entries = [];
+        let selectedEmoji = null;
+        let selectedImage = null;
+        let activeAvatarType = 'emoji';
+        
+        // Edit state
+        let editingEntry = null;
+        let editSelectedEmoji = null;
+        let editSelectedImage = null;
+        let editActiveAvatarType = 'emoji';
+        
+        // Secret key sequence
+        let keySequence = '';
+        let secretTrigger = 'ttttt';
+
+        // Categories
+        const categories = [
+            { id: 'couple', name: 'Best Couple', emoji: '💑' },
+            { id: 'funny', name: 'Funniest', emoji: '😂' },
+            { id: 'scary', name: 'Scariest', emoji: '👻' },
+            { id: 'overall', name: 'Best Overall', emoji: '🏆' }
+        ];
+
+        // Initialize
+        async function init() {
+            await loadEntries();
+            setupEmojiPicker();
+            setupEditEmojiPicker();
+            renderEntries();
+            updateStats();
+        }
+
+        // Load entries from API
+        async function loadEntries() {
+            try {
+                const response = await fetch('/api/entries');
+                if (response.ok) {
+                    entries = await response.json();
+                } else {
+                    console.error('Failed to load entries from API');
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('halloweenEntries');
+                    if (saved) {
+                        entries = JSON.parse(saved);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading entries:', error);
+                // Fallback to localStorage
+                const saved = localStorage.getItem('halloweenEntries');
+                if (saved) {
+                    entries = JSON.parse(saved);
+                }
+            }
+        }
+
+        // Save entries
+        function saveEntries() {
+            localStorage.setItem('halloweenEntries', JSON.stringify(entries));
+        }
+
+        // Switch avatar tab
+        function switchAvatarTab(tab) {
+            activeAvatarType = tab;
+            const tabs = document.querySelectorAll('.avatar-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'emoji') {
+                tabs[0].classList.add('active');
+                document.getElementById('emojiContent').style.display = 'block';
+                document.getElementById('uploadContent').style.display = 'none';
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('emojiContent').style.display = 'none';
+                document.getElementById('uploadContent').style.display = 'block';
+            }
+        }
+
+        // Setup emoji picker
+        function setupEmojiPicker() {
+            const emojiOptions = document.querySelectorAll('.emoji-option');
+            emojiOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    emojiOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedEmoji = this.dataset.emoji;
+                });
+            });
+        }
+
+        // Handle image upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedImage = e.target.result;
+                    document.getElementById('previewImg').src = selectedImage;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Remove image
+        function removeImage() {
+            selectedImage = null;
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+
+        // Add entry
+        function addEntry() {
+            const name = document.getElementById('entryName').value.trim();
+            const type = document.getElementById('entryType').value;
+
+            if (!name) {
+                showToast('Please enter a name!');
+                return;
+            }
+
+            let avatarData = null;
+            let avatarType = null;
+
+            if (activeAvatarType === 'emoji') {
+                if (!selectedEmoji) {
+                    showToast('Please select an emoji!');
+                    return;
+                }
+                avatarData = selectedEmoji;
+                avatarType = 'emoji';
+            } else {
+                if (!selectedImage) {
+                    showToast('Please upload an image!');
+                    return;
+                }
+                avatarData = selectedImage;
+                avatarType = 'image';
+            }
+
+            const entry = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                avatarType: avatarType,
+                avatar: avatarData,
+                emoji: avatarType === 'emoji' ? avatarData : null,
+                image: avatarType === 'image' ? avatarData : null,
+                votes: {
+                    couple: 0,
+                    funny: 0,
+                    scary: 0,
+                    overall: 0
+                }
+            };
+
+            entries.push(entry);
+            saveEntries();
+
+            // Reset form
+            document.getElementById('entryName').value = '';
+            document.getElementById('entryType').value = 'individual';
+            document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('selected'));
+            selectedEmoji = null;
+            removeImage();
+            switchAvatarTab('emoji');
+
+            renderEntries();
+            updateStats();
+            showToast('Entry added successfully! 🎉');
+        }
+
+        // Delete entry
+        function deleteEntry(id) {
+            if (confirm('Delete this entry?')) {
+                entries = entries.filter(e => e.id !== id);
+                saveEntries();
+                renderEntries();
+                updateStats();
+                showToast('Entry deleted');
+            }
+        }
+
+        // Render entries
+        function renderEntries() {
+            const container = document.getElementById('entriesList');
+            
+            if (entries.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>No entries yet</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = entries.map(entry => {
+                const avatarHtml = entry.avatarType === 'image' 
+                    ? `<div class="entry-avatar"><img src="${entry.image}" alt="${entry.name}"></div>`
+                    : `<div class="entry-avatar">${entry.emoji || entry.avatar}</div>`;
+                
+                return `
+                    <div class="entry-card">
+                        ${avatarHtml}
+                        <div class="entry-info">
+                            <div class="entry-name">${entry.name}</div>
+                            <div class="entry-type">${entry.type === 'couple' ? 'Couple/Group' : 'Individual'}</div>
+                            <div class="entry-votes">
+                                ${categories.map(cat => `
+                                    <div class="vote-control">
+                                        <span class="vote-badge">${cat.emoji} ${entry.votes[cat.id]}</span>
+                                        ${entry.votes[cat.id] > 0 ? `<button class="remove-vote-btn" onclick="removeVote(${entry.id}, '${cat.id}')">-</button>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="edit-entry" onclick="editEntry(${entry.id})">✎</div>
+                        <div class="delete-entry" onclick="deleteEntry(${entry.id})">×</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update stats
+        function updateStats() {
+            const count = entries.length;
+            document.getElementById('entriesCount').textContent = `${count} ${count === 1 ? 'entry' : 'entries'}`;
+        }
+
+        // Remove single vote
+        async function removeVote(entryId, category) {
+            try {
+                const response = await fetch('/api/remove-vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ entryId, category })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update local entry data
+                    const entry = entries.find(e => e.id === entryId);
+                    if (entry) {
+                        entry.votes[category] = result.entry.votes[category];
+                    }
+
+                    renderEntries();
+                    updateStats();
+                    showToast('Vote removed! 📉');
+                } else {
+                    throw new Error(result.error || 'Failed to remove vote');
+                }
+
+            } catch (error) {
+                console.error('Remove vote error:', error);
+                showToast('Error removing vote: ' + error.message);
+            }
+        }
+
+        // Reset all votes
+        async function resetAllVotes() {
+            if (!confirm('This will reset ALL votes to zero. Are you sure?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/reset-votes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update local entries data
+                    entries = result.entries;
+
+                    renderEntries();
+                    updateStats();
+                    showToast('All votes reset! 🔄');
+                    toggleMenu();
+                } else {
+                    throw new Error(result.error || 'Failed to reset votes');
+                }
+
+            } catch (error) {
+                console.error('Reset votes error:', error);
+                showToast('Error resetting votes: ' + error.message);
+            }
+        }
+
+        // Show results with detailed statistics
+        async function showResults() {
+            try {
+                const response = await fetch('/api/vote-stats');
+                const stats = await response.json();
+
+                const modal = document.getElementById('resultsModal');
+                const content = document.getElementById('resultsContent');
+
+                content.innerHTML = `
+                    <div class="stats-summary">
+                        <h3>📊 Contest Statistics</h3>
+                        <div class="summary-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Total Entries:</span>
+                                <span class="stat-value">${stats.totalEntries}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Total Votes:</span>
+                                <span class="stat-value">${stats.grandTotalVotes}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${stats.categories.map(categoryData => {
+                        const categoryInfo = categories.find(c => c.id === categoryData.category);
+                        const categoryName = categoryInfo ? categoryInfo.name : categoryData.category;
+                        const categoryEmoji = categoryInfo ? categoryInfo.emoji : '🏆';
+
+                        if (categoryData.entries.length === 0) {
+                            return `
+                                <div class="results-category">
+                                    <h3>${categoryEmoji} ${categoryName}</h3>
+                                    <div class="category-stats">
+                                        <span class="total-votes">Total Votes: ${categoryData.totalVotes}</span>
+                                    </div>
+                                    <div class="no-winner">No entries in this category</div>
+                                </div>
+                            `;
+                        }
+
+                        const winner = categoryData.entries[0];
+                        const allEntries = categoryData.entries.slice(0, 5); // Show top 5
+
+                        return `
+                            <div class="results-category">
+                                <h3>${categoryEmoji} ${categoryName}</h3>
+                                <div class="category-stats">
+                                    <span class="total-votes">Total Votes: ${categoryData.totalVotes}</span>
+                                </div>
+
+                                ${winner && winner.votes > 0 ? `
+                                    <div class="winner">
+                                        <div class="avatar">
+                                            ${winner.avatarType === 'image'
+                                                ? `<img src="${winner.image}" alt="${winner.name}">`
+                                                : winner.emoji}
+                                        </div>
+                                        <div class="winner-info">
+                                            <div class="winner-name">🏆 ${winner.name}</div>
+                                            <div class="winner-votes">${winner.votes} votes</div>
+                                        </div>
+                                    </div>
+
+                                    ${allEntries.length > 1 ? `
+                                        <div class="other-entries">
+                                            <h4>All Results:</h4>
+                                            ${allEntries.map((entry, index) => `
+                                                <div class="entry-result ${index === 0 ? 'first-place' : ''}">
+                                                    <span class="rank">${index + 1}.</span>
+                                                    <div class="result-avatar">
+                                                        ${entry.avatarType === 'image'
+                                                            ? `<img src="${entry.image}" alt="${entry.name}">`
+                                                            : entry.emoji}
+                                                    </div>
+                                                    <span class="result-name">${entry.name}</span>
+                                                    <span class="result-votes">${entry.votes} votes</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : ''}
+                                ` : `
+                                    <div class="no-winner">No votes yet</div>
+                                `}
+                            </div>
+                        `;
+                    }).join('')}
+                `;
+
+                modal.classList.add('active');
+                toggleMenu();
+
+            } catch (error) {
+                console.error('Error loading results:', error);
+                showToast('Error loading results');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('resultsModal').classList.remove('active');
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('This will delete all entries and votes. Are you sure?')) {
+                entries = [];
+                saveEntries();
+                renderEntries();
+                updateStats();
+                showToast('All data cleared');
+                toggleMenu();
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify(entries, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `halloween-contest-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported');
+            toggleMenu();
+        }
+
+        // Edit entry functions
+        function setupEditEmojiPicker() {
+            const emojiOptions = document.querySelectorAll('#editEmojiGrid .emoji-option');
+            emojiOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    emojiOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    editSelectedEmoji = this.dataset.emoji;
+                });
+            });
+        }
+
+        function switchEditAvatarTab(tab) {
+            editActiveAvatarType = tab;
+            const emojiTab = document.getElementById('editEmojiTab');
+            const uploadTab = document.getElementById('editUploadTab');
+            
+            if (tab === 'emoji') {
+                emojiTab.classList.add('active');
+                uploadTab.classList.remove('active');
+                document.getElementById('editEmojiContent').style.display = 'block';
+                document.getElementById('editUploadContent').style.display = 'none';
+            } else {
+                uploadTab.classList.add('active');
+                emojiTab.classList.remove('active');
+                document.getElementById('editEmojiContent').style.display = 'none';
+                document.getElementById('editUploadContent').style.display = 'block';
+            }
+        }
+
+        function handleEditImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editSelectedImage = e.target.result;
+                    document.getElementById('editPreviewImg').src = editSelectedImage;
+                    document.getElementById('editImagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeEditImage() {
+            editSelectedImage = null;
+            document.getElementById('editImageUpload').value = '';
+            document.getElementById('editImagePreview').style.display = 'none';
+        }
+
+        function editEntry(id) {
+            const entry = entries.find(e => e.id === id);
+            if (!entry) return;
+            
+            editingEntry = entry;
+            
+            // Populate form fields
+            document.getElementById('editEntryName').value = entry.name;
+            document.getElementById('editEntryType').value = entry.type;
+            
+            // Reset selections
+            editSelectedEmoji = null;
+            editSelectedImage = null;
+            
+            // Setup avatar based on current entry
+            if (entry.avatarType === 'emoji') {
+                editActiveAvatarType = 'emoji';
+                editSelectedEmoji = entry.emoji || entry.avatar;
+                switchEditAvatarTab('emoji');
+                
+                // Select the correct emoji
+                const emojiOptions = document.querySelectorAll('#editEmojiGrid .emoji-option');
+                emojiOptions.forEach(opt => opt.classList.remove('selected'));
+                const matchingEmoji = Array.from(emojiOptions).find(opt => opt.dataset.emoji === editSelectedEmoji);
+                if (matchingEmoji) {
+                    matchingEmoji.classList.add('selected');
+                }
+            } else {
+                editActiveAvatarType = 'upload';
+                editSelectedImage = entry.image;
+                switchEditAvatarTab('upload');
+                
+                // Show image preview
+                if (editSelectedImage) {
+                    document.getElementById('editPreviewImg').src = editSelectedImage;
+                    document.getElementById('editImagePreview').style.display = 'block';
+                }
+            }
+            
+            // Show modal
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingEntry = null;
+            editSelectedEmoji = null;
+            editSelectedImage = null;
+            
+            // Reset form
+            document.getElementById('editEntryName').value = '';
+            document.getElementById('editEntryType').value = 'individual';
+            document.querySelectorAll('#editEmojiGrid .emoji-option').forEach(opt => opt.classList.remove('selected'));
+            removeEditImage();
+            switchEditAvatarTab('emoji');
+        }
+
+        function saveEditEntry() {
+            const name = document.getElementById('editEntryName').value.trim();
+            const type = document.getElementById('editEntryType').value;
+
+            if (!name) {
+                showToast('Please enter a name!');
+                return;
+            }
+
+            if (!editingEntry) return;
+
+            let avatarData = null;
+            let avatarType = null;
+
+            if (editActiveAvatarType === 'emoji') {
+                if (!editSelectedEmoji) {
+                    showToast('Please select an emoji!');
+                    return;
+                }
+                avatarData = editSelectedEmoji;
+                avatarType = 'emoji';
+            } else {
+                if (!editSelectedImage) {
+                    showToast('Please upload an image!');
+                    return;
+                }
+                avatarData = editSelectedImage;
+                avatarType = 'image';
+            }
+
+            // Update the entry
+            editingEntry.name = name;
+            editingEntry.type = type;
+            editingEntry.avatarType = avatarType;
+            editingEntry.avatar = avatarData;
+            editingEntry.emoji = avatarType === 'emoji' ? avatarData : null;
+            editingEntry.image = avatarType === 'image' ? avatarData : null;
+
+            saveEntries();
+            renderEntries();
+            closeEditModal();
+            showToast('Entry updated successfully! ✨');
+        }
+
+        // Toggle menu
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Show toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Secret key sequence handler
+        function handleSecretKey(event) {
+            // Only track letter keys
+            if (event.key.length === 1 && /[a-zA-Z]/.test(event.key)) {
+                keySequence += event.key.toLowerCase();
+                
+                // Keep only last 5 characters
+                if (keySequence.length > 5) {
+                    keySequence = keySequence.slice(-5);
+                }
+                
+                // Check if secret sequence matches
+                if (keySequence === secretTrigger) {
+                    keySequence = ''; // Reset
+                    window.location.href = 'index.html';
+                }
+            }
+        }
+
+        // Timing Management Functions
+        let timingSettings = {
+            enabled: false,
+            preShowStart: '2024-10-25T18:30',
+            preShowEnd: '2024-10-25T19:45',
+            votingStart: '2024-10-25T19:45',
+            votingEnd: '2024-10-25T20:15',
+            postVotingStart: '2024-10-25T20:15',
+            resultsTime: '2024-10-25T20:30',
+            manualOverride: null // 'preshow', 'voting', 'closed', or null for auto
+        };
+
+        function toggleTimingSettings() {
+            const mode = document.getElementById('timingMode').value;
+            const settings = document.getElementById('timingSettings');
+            const overrides = document.getElementById('manualOverrides');
+
+            if (mode === 'enabled') {
+                settings.style.display = 'block';
+                overrides.style.display = 'block';
+                timingSettings.enabled = true;
+            } else {
+                settings.style.display = 'none';
+                overrides.style.display = 'none';
+                timingSettings.enabled = false;
+            }
+
+            updateTimingStatus();
+            saveTimingToLocalStorage();
+        }
+
+        async function saveTimingSettings() {
+            if (!timingSettings.enabled) return;
+
+            // Get values from form
+            timingSettings.preShowStart = document.getElementById('preShowStart').value;
+            timingSettings.preShowEnd = document.getElementById('preShowEnd').value;
+            timingSettings.votingStart = document.getElementById('votingStart').value;
+            timingSettings.votingEnd = document.getElementById('votingEnd').value;
+            timingSettings.postVotingStart = document.getElementById('postVotingStart').value;
+            timingSettings.resultsTime = document.getElementById('resultsTime').value;
+
+            // Validate times
+            const times = [
+                new Date(timingSettings.preShowStart),
+                new Date(timingSettings.preShowEnd),
+                new Date(timingSettings.votingStart),
+                new Date(timingSettings.votingEnd),
+                new Date(timingSettings.postVotingStart),
+                new Date(timingSettings.resultsTime)
+            ];
+
+            for (let i = 0; i < times.length - 1; i++) {
+                if (times[i] >= times[i + 1]) {
+                    showToast('Error: Times must be in chronological order!');
+                    return;
+                }
+            }
+
+            // Save to server
+            try {
+                const response = await fetch('/api/timing-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(timingSettings)
+                });
+
+                if (response.ok) {
+                    showToast('Timing settings saved successfully!');
+                    saveTimingToLocalStorage();
+                    updateTimingStatus();
+                } else {
+                    throw new Error('Failed to save timing settings');
+                }
+            } catch (error) {
+                console.error('Error saving timing settings:', error);
+                showToast('Error saving timing settings');
+            }
+        }
+
+        function saveTimingToLocalStorage() {
+            localStorage.setItem('contestTimingSettings', JSON.stringify(timingSettings));
+        }
+
+        function loadTimingFromLocalStorage() {
+            const saved = localStorage.getItem('contestTimingSettings');
+            if (saved) {
+                timingSettings = { ...timingSettings, ...JSON.parse(saved) };
+
+                // Update form fields
+                document.getElementById('timingMode').value = timingSettings.enabled ? 'enabled' : 'disabled';
+                document.getElementById('preShowStart').value = timingSettings.preShowStart;
+                document.getElementById('preShowEnd').value = timingSettings.preShowEnd;
+                document.getElementById('votingStart').value = timingSettings.votingStart;
+                document.getElementById('votingEnd').value = timingSettings.votingEnd;
+                document.getElementById('postVotingStart').value = timingSettings.postVotingStart;
+                document.getElementById('resultsTime').value = timingSettings.resultsTime;
+
+                toggleTimingSettings();
+            }
+        }
+
+        function getCurrentPhase() {
+            if (!timingSettings.enabled) {
+                return { phase: 'disabled', message: 'Timing controls disabled - voting always available' };
+            }
+
+            if (timingSettings.manualOverride) {
+                const phases = {
+                    'preshow': { phase: 'preshow', message: 'Pre-show period (Manual Override)', icon: '🎭' },
+                    'voting': { phase: 'voting', message: 'Voting active (Manual Override)', icon: '🗳️' },
+                    'closed': { phase: 'closed', message: 'Voting closed (Manual Override)', icon: '🔒' }
+                };
+                return phases[timingSettings.manualOverride] || phases['closed'];
+            }
+
+            const now = new Date();
+            const preShowStart = new Date(timingSettings.preShowStart);
+            const preShowEnd = new Date(timingSettings.preShowEnd);
+            const votingStart = new Date(timingSettings.votingStart);
+            const votingEnd = new Date(timingSettings.votingEnd);
+            const postVotingStart = new Date(timingSettings.postVotingStart);
+            const resultsTime = new Date(timingSettings.resultsTime);
+
+            if (now < preShowStart) {
+                return {
+                    phase: 'beforeshow',
+                    message: 'Contest not yet started',
+                    icon: '⏰',
+                    next: `Pre-show starts ${preShowStart.toLocaleString()}`
+                };
+            } else if (now >= preShowStart && now < preShowEnd) {
+                return {
+                    phase: 'preshow',
+                    message: 'Pre-show period - Upload costumes only',
+                    icon: '🎭',
+                    next: `Voting starts ${votingStart.toLocaleString()}`
+                };
+            } else if (now >= votingStart && now < votingEnd) {
+                return {
+                    phase: 'voting',
+                    message: 'Voting is ACTIVE!',
+                    icon: '🗳️',
+                    next: `Voting ends ${votingEnd.toLocaleString()}`
+                };
+            } else if (now >= postVotingStart && now < resultsTime) {
+                return {
+                    phase: 'closed',
+                    message: 'Voting closed - Preparing results',
+                    icon: '🔒',
+                    next: `Results announced ${resultsTime.toLocaleString()}`
+                };
+            } else {
+                return {
+                    phase: 'results',
+                    message: 'Contest complete - Results announced!',
+                    icon: '🏆',
+                    next: ''
+                };
+            }
+        }
+
+        function updateTimingStatus() {
+            const status = getCurrentPhase();
+            const phaseIcon = document.getElementById('phaseIcon');
+            const currentPhase = document.getElementById('currentPhase');
+            const nextPhase = document.getElementById('nextPhase');
+
+            if (status.icon) phaseIcon.textContent = status.icon;
+            currentPhase.textContent = status.message;
+            nextPhase.textContent = status.next || '';
+
+            // Update status background color based on phase
+            const statusDiv = document.querySelector('.timing-status > div');
+            statusDiv.style.background = getPhaseColor(status.phase);
+            statusDiv.style.borderColor = getPhaseBorderColor(status.phase);
+        }
+
+        function getPhaseColor(phase) {
+            const colors = {
+                'disabled': 'rgba(255, 107, 0, 0.1)',
+                'beforeshow': 'rgba(100, 100, 100, 0.1)',
+                'preshow': 'rgba(255, 255, 0, 0.1)',
+                'voting': 'rgba(0, 255, 0, 0.1)',
+                'closed': 'rgba(255, 0, 0, 0.1)',
+                'results': 'rgba(255, 215, 0, 0.1)'
+            };
+            return colors[phase] || colors['disabled'];
+        }
+
+        function getPhaseBorderColor(phase) {
+            const colors = {
+                'disabled': 'rgba(255, 107, 0, 0.3)',
+                'beforeshow': 'rgba(100, 100, 100, 0.3)',
+                'preshow': 'rgba(255, 255, 0, 0.3)',
+                'voting': 'rgba(0, 255, 0, 0.3)',
+                'closed': 'rgba(255, 0, 0, 0.3)',
+                'results': 'rgba(255, 215, 0, 0.3)'
+            };
+            return colors[phase] || colors['disabled'];
+        }
+
+        async function setPhase(phase) {
+            if (phase === 'auto') {
+                timingSettings.manualOverride = null;
+                showToast('Returned to automatic timing');
+            } else {
+                timingSettings.manualOverride = phase;
+                const phaseNames = {
+                    'preshow': 'Pre-show',
+                    'voting': 'Voting',
+                    'closed': 'Voting Closed'
+                };
+                showToast(`Manually set to ${phaseNames[phase]} phase`);
+            }
+
+            // Save to server
+            try {
+                await fetch('/api/timing-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(timingSettings)
+                });
+            } catch (error) {
+                console.error('Error saving manual override:', error);
+            }
+
+            saveTimingToLocalStorage();
+            updateTimingStatus();
+        }
+
+        // Initialize timing on load
+        function initTiming() {
+            loadTimingFromLocalStorage();
+            updateTimingStatus();
+
+            // Update status every 30 seconds
+            setInterval(updateTimingStatus, 30000);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            init();
+            initTiming();
+        });
+        
+        // Add secret key listener
+        document.addEventListener('keydown', handleSecretKey);
+    </script>
+</body>
+</html>

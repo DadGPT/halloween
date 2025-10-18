@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(./node_modules/.bin/tailwindcss:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(node:*)",
+      "Bash(npx http-server:*)",
+      "Bash(npx pulumi:*)",
+      "Bash(npx ngrok:*)",
+      "Bash(lt:*)",
+      "WebSearch",
+      "Bash(cloudflared tunnel:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
