@@ -1123,33 +1123,85 @@
         }
 
         // Reset votes
-        function resetVotes() {
-            votes = {
-                couple: null,
-                funny: null,
-                scary: null,
-                overall: null
-            };
-            saveVotes();
-            renderCategories();
-            updateLockButton();
-            showToast('All votes reset!');
-            toggleMenu();
-        }
+        async function resetVotes() {
+            if (!confirm('Reset all your votes?')) {
+                return;
+            }
 
-        // Reset votes from bottom button
-        function resetVotesBottom() {
-            if (confirm('Reset all your votes?')) {
+            try {
+                // Delete all votes for this voter from the database
+                const categoriesToDelete = ['couple', 'funny', 'scary', 'overall'];
+                const deletePromises = [];
+
+                for (const category of categoriesToDelete) {
+                    if (votes[category] !== null) {
+                        // Only delete if there's a vote in this category
+                        const deletePromise = fetch(`/api/voter-vote/${voterId}/${category}`, {
+                            method: 'DELETE'
+                        });
+                        deletePromises.push(deletePromise);
+                    }
+                }
+
+                // Wait for all deletions to complete
+                await Promise.all(deletePromises);
+
+                // Reset local votes object
                 votes = {
                     couple: null,
                     funny: null,
                     scary: null,
                     overall: null
                 };
-                saveVotes();
+
                 renderCategories();
                 updateLockButton();
                 showToast('All votes reset!');
+                toggleMenu();
+            } catch (error) {
+                console.error('Error resetting votes:', error);
+                showToast('Failed to reset votes. Please try again.');
+            }
+        }
+
+        // Reset votes from bottom button
+        async function resetVotesBottom() {
+            if (!confirm('Reset all your votes?')) {
+                return;
+            }
+
+            try {
+                // Delete all votes for this voter from the database
+                const categoriesToDelete = ['couple', 'funny', 'scary', 'overall'];
+                const deletePromises = [];
+
+                for (const category of categoriesToDelete) {
+                    if (votes[category] !== null) {
+                        // Only delete if there's a vote in this category
+                        const deletePromise = fetch(`/api/voter-vote/${voterId}/${category}`, {
+                            method: 'DELETE'
+                        });
+                        deletePromises.push(deletePromise);
+                    }
+                }
+
+                // Wait for all deletions to complete
+                await Promise.all(deletePromises);
+
+                // Reset local votes object
+                votes = {
+                    couple: null,
+                    funny: null,
+                    scary: null,
+                    overall: null
+                };
+
+                renderCategories();
+                updateLockButton();
+                showToast('All votes reset!');
+            } catch (error) {
+                console.error('Error resetting votes:', error);
+                showToast('Failed to reset votes. Please try again.');
             }
         }
 
