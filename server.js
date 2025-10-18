@@ -19,9 +19,16 @@ app.use(express.json());
 app.use(express.static('.'));
 
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+// In serverless environments (like Vercel), use /tmp for writable storage
+const uploadsDir = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, 'uploads');
+try {
+    if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+        console.log('Created uploads directory:', uploadsDir);
+    }
+} catch (error) {
+    console.warn('Could not create uploads directory (read-only filesystem?):', error.message);
+    console.warn('Local file uploads will not work, relying on cloud storage only');
 }
 
 // Configure multer for file uploads (store in memory for cloud upload)
