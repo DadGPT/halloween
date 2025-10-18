@@ -122,6 +122,32 @@ class DatabaseService {
         }
     }
 
+    // Delete an entry
+    async deleteEntry(id) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
+        try {
+            console.log('Deleting entry:', id);
+            const { error } = await this.supabase
+                .from('contest_entries')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                console.error('Error deleting entry:', error);
+                throw error;
+            }
+
+            console.log('Entry deleted successfully');
+            return true;
+        } catch (error) {
+            console.error('Failed to delete entry:', error.message);
+            throw error;
+        }
+    }
+
     // Increment vote for an entry in a specific category
     async addVote(entryId, category) {
         if (!this.initialized || !this.supabase) {

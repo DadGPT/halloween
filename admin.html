@@ -1461,13 +1461,34 @@
         }
 
         // Delete entry
-        function deleteEntry(id) {
-            if (confirm('Delete this entry?')) {
-                entries = entries.filter(e => e.id !== id);
-                saveEntries();
+        async function deleteEntry(id) {
+            if (!confirm('Delete this entry?')) {
+                return;
+            }
+
+            try {
+                console.log('Deleting entry:', id);
+                const response = await fetch(`/api/entries/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Delete failed');
+                }
+
+                const result = await response.json();
+                console.log('Delete successful:', result);
+
+                // Reload entries from server
+                await loadEntries();
                 renderEntries();
                 updateStats();
-                showToast('Entry deleted');
+
+                showToast('Entry deleted successfully! 🗑️');
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('Failed to delete: ' + error.message);
             }
         }
 
@@ -1770,23 +1791,27 @@
         function editEntry(id) {
             const entry = entries.find(e => e.id === id);
             if (!entry) return;
-            
+
             editingEntry = entry;
-            
+
             // Populate form fields
             document.getElementById('editEntryName').value = entry.name;
             document.getElementById('editEntryType').value = entry.type;
-            
+
             // Reset selections
             editSelectedEmoji = null;
             editSelectedImage = null;
-            
+
+            // Handle both database format and legacy format
+            const avatarType = entry.avatar_type || entry.avatarType;
+            const imageUrl = entry.cloud_url || entry.image_url || entry.image;
+
             // Setup avatar based on current entry
-            if (entry.avatarType === 'emoji') {
+            if (avatarType === 'emoji') {
                 editActiveAvatarType = 'emoji';
                 editSelectedEmoji = entry.emoji || entry.avatar;
                 switchEditAvatarTab('emoji');
-                
+
                 // Select the correct emoji
                 const emojiOptions = document.querySelectorAll('#editEmojiGrid .emoji-option');
                 emojiOptions.forEach(opt => opt.classList.remove('selected'));
@@ -1796,16 +1821,16 @@
                 }
             } else {
                 editActiveAvatarType = 'upload';
-                editSelectedImage = entry.image;
+                editSelectedImage = imageUrl;
                 switchEditAvatarTab('upload');
-                
+
                 // Show image preview
                 if (editSelectedImage) {
                     document.getElementById('editPreviewImg').src = editSelectedImage;
                     document.getElementById('editImagePreview').style.display = 'block';
                 }
             }
-            
+
             // Show modal
             document.getElementById('editModal').classList.add('active');
         }
@@ -1824,7 +1849,7 @@
             switchEditAvatarTab('emoji');
         }
 
-        function saveEditEntry() {
+        async function saveEditEntry() {
             const name = document.getElementById('editEntryName').value.trim();
             const type = document.getElementById('editEntryType').value;
 
@@ -1835,37 +1860,60 @@
 
             if (!editingEntry) return;
 
-            let avatarData = null;
-            let avatarType = null;
+            try {
+                console.log('Updating entry:', editingEntry.id);
 
-            if (editActiveAvatarType === 'emoji') {
-                if (!editSelectedEmoji) {
-                    showToast('Please select an emoji!');
-                    return;
+                // Prepare update data
+                const updates = {
+                    name: name,
+                    type: type
+                };
+
+                // Handle avatar updates
+                if (editActiveAvatarType === 'emoji') {
+                    if (!editSelectedEmoji) {
+                        showToast('Please select an emoji!');
+                        return;
+                    }
+                    updates.avatar_type = 'emoji';
+                    updates.avatar = editSelectedEmoji;
+                    updates.image_url = null;
+                } else {
+                    // For image updates, keep the existing image
+                    // (Supporting image replacement would require file upload which is more complex)
+                    if (!editSelectedImage) {
+                        showToast('Please keep or select an image!');
+                        return;
+                    }
                 }
-                avatarData = editSelectedEmoji;
-                avatarType = 'emoji';
-            } else {
-                if (!editSelectedImage) {
-                    showToast('Please upload an image!');
-                    return;
+
+                console.log('Sending updates:', updates);
+
+                const response = await fetch(`/api/entries/${editingEntry.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Update failed');
                 }
-                avatarData = editSelectedImage;
-                avatarType = 'image';
+
+                const result = await response.json();
+                console.log('Update successful:', result);
+
+                // Reload entries from server
+                await loadEntries();
+                renderEntries();
+                closeEditModal();
+                showToast('Entry updated successfully! ✨');
+            } catch (error) {
+                console.error('Update error:', error);
+                showToast('Failed to update: ' + error.message);
             }
-
-            // Update the entry
-            editingEntry.name = name;
-            editingEntry.type = type;
-            editingEntry.avatarType = avatarType;
-            editingEntry.avatar = avatarData;
-            editingEntry.emoji = avatarType === 'emoji' ? avatarData : null;
-            editingEntry.image = avatarType === 'image' ? avatarData : null;
-
-            saveEntries();
-            renderEntries();
-            closeEditModal();
-            showToast('Entry updated successfully! ✨');
         }
 
         // Toggle menu

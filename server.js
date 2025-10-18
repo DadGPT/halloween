@@ -355,6 +355,61 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
     }
 });
 
+// Update an existing entry
+app.put('/api/entries/:id', async (req, res) => {
+    try {
+        console.log('=== Update Entry Request ===');
+        const entryId = parseInt(req.params.id);
+        const updates = req.body;
+
+        console.log('Entry ID:', entryId);
+        console.log('Updates:', updates);
+
+        // Remove fields that shouldn't be updated directly
+        delete updates.id;
+        delete updates.created_at;
+        delete updates.votes;
+
+        const updatedEntry = await database.updateEntry(entryId, updates);
+        console.log('Entry updated successfully');
+
+        res.json({
+            success: true,
+            entry: updatedEntry,
+            message: 'Entry updated successfully!'
+        });
+    } catch (error) {
+        console.error('Update entry error:', error);
+        res.status(500).json({
+            error: 'Failed to update entry',
+            details: error.message
+        });
+    }
+});
+
+// Delete an entry
+app.delete('/api/entries/:id', async (req, res) => {
+    try {
+        console.log('=== Delete Entry Request ===');
+        const entryId = parseInt(req.params.id);
+        console.log('Entry ID:', entryId);
+
+        await database.deleteEntry(entryId);
+        console.log('Entry deleted successfully');
+
+        res.json({
+            success: true,
+            message: 'Entry deleted successfully!'
+        });
+    } catch (error) {
+        console.error('Delete entry error:', error);
+        res.status(500).json({
+            error: 'Failed to delete entry',
+            details: error.message
+        });
+    }
+});
+
 // Serve uploaded images
 app.use('/uploads', express.static(uploadsDir));
 
