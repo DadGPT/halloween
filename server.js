@@ -199,6 +199,42 @@ app.get('/api/health', async (req, res) => {
     });
 });
 
+// Debug endpoint to check GCS credentials decoding
+app.get('/api/debug-gcs', async (req, res) => {
+    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+        return res.json({ error: 'GOOGLE_SERVICE_ACCOUNT_KEY not set' });
+    }
+
+    try {
+        const decodedString = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8');
+        const credentialsJson = JSON.parse(decodedString);
+
+        res.json({
+            base64Length: process.env.GOOGLE_SERVICE_ACCOUNT_KEY.length,
+            decodedLength: decodedString.length,
+            decodedPrefix: decodedString.substring(0, 100),
+            credentials: {
+                type: credentialsJson.type,
+                project_id: credentialsJson.project_id,
+                private_key_id: credentialsJson.private_key_id,
+                client_email: credentialsJson.client_email,
+                client_id: credentialsJson.client_id,
+                auth_uri: credentialsJson.auth_uri,
+                token_uri: credentialsJson.token_uri,
+                private_key_length: credentialsJson.private_key?.length,
+                private_key_has_newlines: credentialsJson.private_key?.includes('\n'),
+                private_key_start: credentialsJson.private_key?.substring(0, 50),
+                private_key_end: credentialsJson.private_key?.substring(credentialsJson.private_key.length - 50)
+            }
+        });
+    } catch (error) {
+        res.json({
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 // Get all contest entries
 app.get('/api/entries', async (req, res) => {
     try {
