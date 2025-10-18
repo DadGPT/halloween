@@ -20,10 +20,14 @@ class CloudStorageService {
         if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
             try {
                 console.log('Attempting to decode base64 service account key...');
+                console.log('Base64 key length:', process.env.GOOGLE_SERVICE_ACCOUNT_KEY.length);
+
                 // Decode base64 and parse JSON credentials
-                const credentialsJson = JSON.parse(
-                    Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8')
-                );
+                const decodedString = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8');
+                console.log('Decoded string length:', decodedString.length);
+                console.log('First 50 chars of decoded string:', decodedString.substring(0, 50));
+
+                const credentialsJson = JSON.parse(decodedString);
 
                 // Log credential structure (sanitized)
                 console.log('Credentials structure:', {
@@ -31,7 +35,9 @@ class CloudStorageService {
                     project_id: credentialsJson.project_id,
                     client_email: credentialsJson.client_email,
                     has_private_key: !!credentialsJson.private_key,
-                    private_key_id: credentialsJson.private_key_id ? 'present' : 'missing'
+                    private_key_length: credentialsJson.private_key?.length,
+                    private_key_id: credentialsJson.private_key_id ? 'present' : 'missing',
+                    private_key_starts_with: credentialsJson.private_key?.substring(0, 27)
                 });
 
                 // Fix private key newlines if they were escaped during environment variable storage
