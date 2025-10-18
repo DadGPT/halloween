@@ -103,6 +103,7 @@ let contestEntries = [...DEFAULT_ENTRIES];
 // Helper functions for persistent storage
 async function loadContestData() {
     try {
+        console.log('Loading contest data from cloud storage...');
         const data = await cloudStorage.loadData('contest-data.json');
         if (data && data.entries) {
             contestEntries = data.entries;
@@ -111,18 +112,24 @@ async function loadContestData() {
             console.log('No existing contest data found, using defaults');
         }
     } catch (error) {
-        console.error('Error loading contest data:', error);
+        console.error('Error loading contest data:', error.message);
+        console.error('Load error stack:', error.stack);
+        console.error('Load error code:', error.code);
     }
 }
 
 async function saveContestData() {
     try {
+        console.log(`Saving contest data (${contestEntries.length} entries) to cloud storage...`);
         await cloudStorage.saveData('contest-data.json', {
             entries: contestEntries,
             lastUpdated: new Date().toISOString()
         });
+        console.log('Contest data saved successfully');
     } catch (error) {
-        console.error('Error saving contest data:', error);
+        console.error('Error saving contest data:', error.message);
+        console.error('Save error stack:', error.stack);
+        console.error('Save error code:', error.code);
     }
 }
 
@@ -242,9 +249,15 @@ app.get('/api/entries', async (req, res) => {
 // Upload image and create new contest entry
 app.post('/api/upload', upload.single('photo'), async (req, res) => {
     try {
+        console.log('=== Upload Request Received ===');
+        console.log('Headers:', req.headers);
+        console.log('Body:', req.body);
+        console.log('File present:', !!req.file);
+
         // Check timing permissions
         const currentPhase = getCurrentPhase();
         if (!currentPhase.canUpload) {
+            console.log('Upload rejected: phase not allowing uploads');
             return res.status(403).json({
                 error: 'Costume uploads are not currently allowed',
                 phase: currentPhase.phase,
@@ -253,25 +266,33 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
         }
 
         if (!req.file) {
+            console.error('No file in request');
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
         const { name, description = '', type = 'individual' } = req.body;
 
         if (!name || name.trim() === '') {
+            console.error('Name is missing or empty');
             return res.status(400).json({ error: 'Name is required' });
         }
+
+        console.log('Processing upload for:', name);
 
         let imageUrl;
         let uploadResult;
 
         try {
+            console.log('Attempting cloud storage upload...');
             // Try to upload to Google Cloud Storage first
             uploadResult = await cloudStorage.uploadImage(req.file);
             imageUrl = uploadResult.publicUrl;
-            console.log('Image uploaded to Google Cloud:', uploadResult);
+            console.log('Image uploaded to Google Cloud successfully:', uploadResult);
         } catch (cloudError) {
-            console.warn('Cloud upload failed, falling back to local storage:', cloudError.message);
+            console.error('Cloud upload failed:', cloudError.message);
+            console.error('Cloud error stack:', cloudError.stack);
+            console.error('Cloud error code:', cloudError.code);
+            console.warn('Falling back to local storage...');
 
             // Fallback to local storage
             const uniqueId = crypto.randomUUID();
@@ -281,6 +302,7 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
 
             fs.writeFileSync(filepath, req.file.buffer);
             imageUrl = `/uploads/${filename}`;
+            console.log('Saved to local storage:', imageUrl);
         }
 
         // Create new contest entry
@@ -296,10 +318,16 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
             uploadedAt: new Date().toISOString()
         };
 
+        console.log('Loading contest data...');
         await loadContestData(); // Load latest data before adding
+
+        console.log('Adding new entry...');
         contestEntries.push(newEntry);
+
+        console.log('Saving contest data...');
         await saveContestData(); // Save after adding
 
+        console.log('Upload successful!');
         res.json({
             success: true,
             entry: newEntry,
@@ -307,8 +335,17 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Upload error:', error);
-        res.status(500).json({ error: 'Upload failed' });
+        console.error('=== Upload Error ===');
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('Error code:', error.code);
+        console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+
+        res.status(500).json({
+            error: 'Upload failed',
+            details: error.message,
+            code: error.code
+        });
     }
 });
 
