@@ -67,6 +67,8 @@ class DatabaseService {
 
         try {
             console.log('Adding new entry to database:', entry.name);
+            console.log('Entry to insert:', JSON.stringify(entry, null, 2));
+
             const { data, error } = await this.supabase
                 .from('contest_entries')
                 .insert([entry])
@@ -74,14 +76,20 @@ class DatabaseService {
                 .single();
 
             if (error) {
-                console.error('Error adding entry:', error);
+                console.error('Supabase insert error:', error);
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
+                console.error('Error details:', error.details);
+                console.error('Error hint:', error.hint);
                 throw error;
             }
 
             console.log('Entry added successfully:', data.id);
+            console.log('Returned data:', JSON.stringify(data, null, 2));
             return data;
         } catch (error) {
-            console.error('Failed to add entry:', error.message);
+            console.error('Failed to add entry - caught exception:', error.message);
+            console.error('Error stack:', error.stack);
             throw error;
         }
     }

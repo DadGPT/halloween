@@ -274,14 +274,27 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
         };
 
         console.log('Saving entry to database...');
-        const savedEntry = await database.addEntry(newEntry);
+        console.log('Entry data:', JSON.stringify(newEntry, null, 2));
 
-        console.log('Upload successful!');
-        res.json({
-            success: true,
-            entry: savedEntry,
-            message: 'Photo uploaded successfully!'
-        });
+        try {
+            const savedEntry = await database.addEntry(newEntry);
+            console.log('Database save successful!');
+            console.log('Saved entry:', JSON.stringify(savedEntry, null, 2));
+
+            res.json({
+                success: true,
+                entry: savedEntry,
+                message: 'Photo uploaded successfully!'
+            });
+        } catch (dbError) {
+            console.error('Database save failed!');
+            console.error('DB Error message:', dbError.message);
+            console.error('DB Error stack:', dbError.stack);
+            console.error('DB Error details:', dbError);
+
+            // Return error to client
+            throw new Error(`Failed to save to database: ${dbError.message}`);
+        }
 
     } catch (error) {
         console.error('=== Upload Error ===');
