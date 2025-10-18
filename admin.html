@@ -1438,11 +1438,14 @@
                                 ${winner && winner.votes > 0 ? `
                                     <div class="winner">
                                         <div class="avatar">
-                                            <img src="${winner.cloud_url || winner.image_url || winner.image}" alt="${winner.name}">
+                                            ${winner.hasValidImage !== false && (winner.cloud_url || winner.image_url || winner.image)
+                                                ? `<img src="${winner.cloud_url || winner.image_url || winner.image}" alt="${winner.name}">`
+                                                : `<div style="width: 50px; height: 50px; background: rgba(255, 107, 0, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ff6b00; font-size: 0.8em;">⚠️</div>`}
                                         </div>
                                         <div class="winner-info">
                                             <div class="winner-name">🏆 ${winner.name}</div>
                                             <div class="winner-votes">${winner.votes} votes</div>
+                                            ${winner.hasValidImage === false ? '<div style="color: #ff4444; font-size: 0.8em;">Image unavailable</div>' : ''}
                                         </div>
                                     </div>
 
@@ -1453,9 +1456,11 @@
                                                 <div class="entry-result ${index === 0 ? 'first-place' : ''}">
                                                     <span class="rank">${index + 1}.</span>
                                                     <div class="result-avatar">
-                                                        <img src="${entry.cloud_url || entry.image_url || entry.image}" alt="${entry.name}">
+                                                        ${entry.hasValidImage !== false && (entry.cloud_url || entry.image_url || entry.image)
+                                                            ? `<img src="${entry.cloud_url || entry.image_url || entry.image}" alt="${entry.name}">`
+                                                            : `<div style="width: 30px; height: 30px; background: rgba(255, 107, 0, 0.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #ff6b00; font-size: 0.7em;">⚠️</div>`}
                                                     </div>
-                                                    <span class="result-name">${entry.name}</span>
+                                                    <span class="result-name">${entry.name}${entry.hasValidImage === false ? ' ⚠️' : ''}</span>
                                                     <span class="result-votes">${entry.votes} votes</span>
                                                 </div>
                                             `).join('')}

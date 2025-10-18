@@ -292,9 +292,21 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
             console.error('Cloud upload failed:', cloudError.message);
             console.error('Cloud error stack:', cloudError.stack);
             console.error('Cloud error code:', cloudError.code);
-            console.warn('Falling back to local storage...');
 
-            // Fallback to local storage
+            // In production/serverless environments, don't allow local storage fallback
+            // because files in /tmp get cleaned up and images will break
+            if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+                console.error('Running in production - local storage not available');
+                return res.status(500).json({
+                    error: 'Cloud storage upload failed',
+                    details: 'Unable to upload image to cloud storage. Please check Google Cloud Storage configuration.',
+                    cloudError: cloudError.message
+                });
+            }
+
+            console.warn('Falling back to local storage (development only)...');
+
+            // Fallback to local storage (development only)
             const uniqueId = crypto.randomUUID();
             const extension = path.extname(req.file.originalname);
             const filename = `${uniqueId}${extension}`;
@@ -641,19 +653,26 @@ app.get('/api/vote-stats', async (req, res) => {
 
                 const totalVotes = categoryEntries.reduce((sum, entry) => sum + entry.votes[category], 0);
                 const sortedEntries = categoryEntries
-                    .map(entry => ({
-                        id: entry.id,
-                        name: entry.name,
-                        type: entry.type,
-                        votes: entry.votes[category],
-                        avatar_type: entry.avatar_type,
-                        avatarType: entry.avatar_type, // Legacy support
-                        image_url: entry.image_url,
-                        cloud_url: entry.cloud_url,
-                        image: entry.image_url || entry.cloud_url, // Legacy support
-                        avatar: entry.avatar,
-                        emoji: entry.emoji
-                    }))
+                    .map(entry => {
+                        // Prefer cloud_url, fall back to image_url only if it's not a local path
+                        const hasValidImage = entry.cloud_url ||
+                                            (entry.image_url && !entry.image_url.startsWith('/uploads/'));
+
+                        return {
+                            id: entry.id,
+                            name: entry.name,
+                            type: entry.type,
+                            votes: entry.votes[category],
+                            avatar_type: entry.avatar_type,
+                            avatarType: entry.avatar_type, // Legacy support
+                            image_url: hasValidImage ? (entry.cloud_url || entry.image_url) : null,
+                            cloud_url: entry.cloud_url,
+                            image: hasValidImage ? (entry.cloud_url || entry.image_url) : null, // Legacy support
+                            avatar: entry.avatar,
+                            emoji: entry.emoji,
+                            hasValidImage: hasValidImage // Flag to indicate if image is available
+                        };
+                    })
                     .sort((a, b) => b.votes - a.votes);
 
                 return {
