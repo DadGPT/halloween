@@ -170,6 +170,26 @@ app.get('/voting-closed', (req, res) => {
 
 // API Routes
 
+// Health check endpoint to verify environment variables
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        env: {
+            NODE_ENV: process.env.NODE_ENV,
+            VERCEL: !!process.env.VERCEL,
+            SUPABASE_URL_SET: !!process.env.SUPABASE_URL,
+            SUPABASE_ANON_KEY_SET: !!process.env.SUPABASE_ANON_KEY,
+            GOOGLE_CLOUD_PROJECT_ID_SET: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+            GOOGLE_CLOUD_BUCKET_SET: !!process.env.GOOGLE_CLOUD_BUCKET,
+            GOOGLE_SERVICE_ACCOUNT_KEY_SET: !!process.env.GOOGLE_SERVICE_ACCOUNT_KEY
+        },
+        database: {
+            initialized: database.initialized || false
+        }
+    });
+});
+
 // Get all contest entries
 app.get('/api/entries', async (req, res) => {
     try {
