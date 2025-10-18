@@ -34,15 +34,19 @@ class CloudStorageService {
                     private_key_id: credentialsJson.private_key_id ? 'present' : 'missing'
                 });
 
-                // Use explicit credentials format for serverless environments
-                // Pass all required fields: client_email, project_id, private_key, client_id
-                storageConfig.credentials = {
-                    client_email: credentialsJson.client_email,
-                    private_key: credentialsJson.private_key,
-                    project_id: credentialsJson.project_id,
-                    client_id: credentialsJson.client_id
-                };
-                console.log('Successfully parsed and set service account credentials');
+                // Create an explicit auth client for serverless environments
+                // This prevents the "Could not load default credentials" error
+                const auth = new GoogleAuth({
+                    projectId: credentialsJson.project_id,
+                    credentials: {
+                        client_email: credentialsJson.client_email,
+                        private_key: credentialsJson.private_key
+                    },
+                    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+                });
+
+                storageConfig.authClient = auth;
+                console.log('Successfully created GoogleAuth client with credentials');
             } catch (error) {
                 console.error('Error parsing service account key:', error.message);
                 console.error('Stack:', error.stack);
@@ -57,9 +61,8 @@ class CloudStorageService {
 
         console.log('Storage config being used:', {
             projectId: storageConfig.projectId,
-            hasCredentials: !!storageConfig.credentials,
-            hasKeyFilename: !!storageConfig.keyFilename,
-            client_email: storageConfig.credentials?.client_email
+            hasAuthClient: !!storageConfig.authClient,
+            hasKeyFilename: !!storageConfig.keyFilename
         });
 
         this.storage = new Storage(storageConfig);
