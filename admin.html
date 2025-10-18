@@ -1486,8 +1486,12 @@
             }
 
             container.innerHTML = entries.map(entry => {
-                const avatarHtml = entry.avatarType === 'image' 
-                    ? `<div class="entry-avatar"><img src="${entry.image}" alt="${entry.name}"></div>`
+                // Handle both database format (avatar_type, image_url, cloud_url) and legacy format (avatarType, image)
+                const avatarType = entry.avatar_type || entry.avatarType;
+                const imageUrl = entry.cloud_url || entry.image_url || entry.image;
+
+                const avatarHtml = avatarType === 'image'
+                    ? `<div class="entry-avatar"><img src="${imageUrl}" alt="${entry.name}"></div>`
                     : `<div class="entry-avatar">${entry.emoji || entry.avatar}</div>`;
                 
                 return `
