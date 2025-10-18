@@ -15,7 +15,22 @@ const PORT = process.env.PORT || 3000;
 const cloudStorage = new CloudStorageService();
 
 // Initialize database service (for contest data)
-const database = new DatabaseService();
+let database;
+try {
+    database = new DatabaseService();
+    console.log('Database service initialized successfully');
+} catch (error) {
+    console.error('Failed to initialize database service:', error.message);
+    console.error('Database functionality will not be available');
+    // Create a mock database that returns errors
+    database = {
+        getEntries: async () => { throw new Error('Database not initialized'); },
+        addEntry: async () => { throw new Error('Database not initialized'); },
+        addVote: async () => { throw new Error('Database not initialized'); },
+        removeVote: async () => { throw new Error('Database not initialized'); },
+        resetVotes: async () => { throw new Error('Database not initialized'); }
+    };
+}
 
 // Enable CORS for all origins (you may want to restrict this in production)
 app.use(cors());

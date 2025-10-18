@@ -3,23 +3,42 @@ const { createClient } = require('@supabase/supabase-js');
 class DatabaseService {
     constructor() {
         console.log('Initializing DatabaseService...');
+        console.log('Environment check:');
+        console.log('- SUPABASE_URL present:', !!process.env.SUPABASE_URL);
+        console.log('- SUPABASE_ANON_KEY present:', !!process.env.SUPABASE_ANON_KEY);
 
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
         if (!supabaseUrl || !supabaseKey) {
-            console.error('Missing Supabase credentials!');
-            console.error('SUPABASE_URL:', !!supabaseUrl);
-            console.error('SUPABASE_ANON_KEY:', !!supabaseKey);
-            throw new Error('Supabase credentials not configured');
+            const errorMsg = 'Missing Supabase credentials. Database functionality will be limited.';
+            console.warn(errorMsg);
+            console.warn('SUPABASE_URL:', supabaseUrl ? 'present' : 'MISSING');
+            console.warn('SUPABASE_ANON_KEY:', supabaseKey ? 'present' : 'MISSING');
+
+            // Don't throw - just set initialized flag to false
+            this.initialized = false;
+            this.supabase = null;
+            return;
         }
 
-        this.supabase = createClient(supabaseUrl, supabaseKey);
-        console.log('DatabaseService initialized successfully');
+        try {
+            this.supabase = createClient(supabaseUrl, supabaseKey);
+            this.initialized = true;
+            console.log('DatabaseService initialized successfully');
+        } catch (error) {
+            console.error('Error creating Supabase client:', error.message);
+            this.initialized = false;
+            this.supabase = null;
+        }
     }
 
     // Get all contest entries
     async getEntries() {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
         try {
             console.log('Fetching all contest entries from database...');
             const { data, error } = await this.supabase
@@ -42,6 +61,10 @@ class DatabaseService {
 
     // Add a new contest entry
     async addEntry(entry) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
         try {
             console.log('Adding new entry to database:', entry.name);
             const { data, error } = await this.supabase
@@ -65,6 +88,10 @@ class DatabaseService {
 
     // Update an existing entry (for voting)
     async updateEntry(id, updates) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
         try {
             console.log('Updating entry:', id);
             const { data, error } = await this.supabase
@@ -89,6 +116,10 @@ class DatabaseService {
 
     // Increment vote for an entry in a specific category
     async addVote(entryId, category) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
         try {
             console.log(`Adding vote for entry ${entryId} in category: ${category}`);
 
@@ -131,6 +162,10 @@ class DatabaseService {
 
     // Remove a vote for an entry in a specific category
     async removeVote(entryId, category) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
         try {
             console.log(`Removing vote for entry ${entryId} in category: ${category}`);
 
@@ -173,6 +208,10 @@ class DatabaseService {
 
     // Reset all votes
     async resetVotes() {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
         try {
             console.log('Resetting all votes...');
 
