@@ -171,7 +171,15 @@ app.get('/voting-closed', (req, res) => {
 // API Routes
 
 // Health check endpoint to verify environment variables
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+    let gcsTestResult = null;
+    try {
+        const testResult = await cloudStorage.testConnection();
+        gcsTestResult = { success: testResult };
+    } catch (error) {
+        gcsTestResult = { success: false, error: error.message };
+    }
+
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -186,7 +194,8 @@ app.get('/api/health', (req, res) => {
         },
         database: {
             initialized: database.initialized || false
-        }
+        },
+        googleCloudStorage: gcsTestResult
     });
 });
 
