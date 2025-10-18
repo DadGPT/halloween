@@ -31,4 +31,8 @@ Thumbs.db
 .pulumi/
 *.stack.yaml
 
+# Service Account Keys (sensitive!)
+*-sa-key.json
+*-sa-key-base64.txt
+
 .vercel
