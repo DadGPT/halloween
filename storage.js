@@ -151,11 +151,18 @@ class CloudStorageService {
     // Health check method
     async testConnection() {
         try {
-            await this.bucket.exists();
+            console.log('Testing GCS bucket connection...');
+            const [exists] = await this.bucket.exists();
+            console.log('Bucket exists:', exists);
+            if (!exists) {
+                throw new Error(`Bucket ${this.bucketName} does not exist`);
+            }
             return true;
         } catch (error) {
-            console.error('Storage connection test failed:', error);
-            return false;
+            console.error('Storage connection test failed:', error.message);
+            console.error('Error code:', error.code);
+            console.error('Error details:', error);
+            throw error;  // Throw instead of returning false so health endpoint can show the error
         }
     }
 
