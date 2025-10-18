@@ -179,16 +179,39 @@ class CloudStorageService {
     async testConnection() {
         try {
             console.log('Testing GCS bucket connection...');
-            const [exists] = await this.bucket.exists();
-            console.log('Bucket exists:', exists);
-            if (!exists) {
-                throw new Error(`Bucket ${this.bucketName} does not exist`);
+
+            // Try to write a small test file instead of just checking existence
+            // This better tests if authentication is actually working
+            const testFile = this.bucket.file('_test_connection.txt');
+            const testContent = `Connection test at ${new Date().toISOString()}`;
+
+            console.log('Attempting to write test file...');
+            await testFile.save(testContent, {
+                metadata: {
+                    contentType: 'text/plain'
+                }
+            });
+
+            console.log('Test file written successfully');
+
+            // Clean up test file
+            try {
+                await testFile.delete();
+                console.log('Test file deleted successfully');
+            } catch (deleteError) {
+                console.log('Could not delete test file (not critical):', deleteError.message);
             }
+
             return true;
         } catch (error) {
             console.error('Storage connection test failed:', error.message);
             console.error('Error code:', error.code);
-            console.error('Error details:', error);
+            console.error('Error name:', error.name);
+            console.error('Error details:', JSON.stringify({
+                message: error.message,
+                code: error.code,
+                name: error.name
+            }));
             throw error;  // Throw instead of returning false so health endpoint can show the error
         }
     }
