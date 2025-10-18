@@ -519,6 +519,93 @@ app.post('/api/reset-votes', async (req, res) => {
     }
 });
 
+// Get voter's votes (for costume_votes table)
+app.get('/api/voter-votes/:voterId', async (req, res) => {
+    try {
+        const { voterId } = req.params;
+
+        if (!voterId) {
+            return res.status(400).json({ error: 'Voter ID is required' });
+        }
+
+        const votes = await database.getVoterVotes(voterId);
+
+        res.json({
+            success: true,
+            votes: votes
+        });
+    } catch (error) {
+        console.error('Get voter votes error:', error);
+        res.status(500).json({ error: 'Failed to get voter votes' });
+    }
+});
+
+// Submit a vote (for costume_votes table)
+app.post('/api/submit-vote', async (req, res) => {
+    try {
+        // Check timing permissions
+        const currentPhase = getCurrentPhase();
+        if (!currentPhase.canVote) {
+            return res.status(403).json({
+                error: 'Voting is not currently allowed',
+                phase: currentPhase.phase,
+                message: getPhaseMessage(currentPhase.phase)
+            });
+        }
+
+        const { voterId, entryId, category } = req.body;
+
+        if (!voterId || !entryId || !category) {
+            return res.status(400).json({ error: 'Voter ID, entry ID, and category are required' });
+        }
+
+        // Validate category
+        const validCategories = ['couple', 'funny', 'scary', 'overall'];
+        if (!validCategories.includes(category)) {
+            return res.status(400).json({ error: 'Invalid category' });
+        }
+
+        const vote = await database.submitVote(voterId, entryId, category);
+
+        res.json({
+            success: true,
+            vote: vote,
+            message: 'Vote submitted!'
+        });
+    } catch (error) {
+        console.error('Submit vote error:', error);
+        res.status(500).json({ error: 'Failed to submit vote' });
+    }
+});
+
+// Delete a vote (change vote in costume_votes table)
+app.delete('/api/voter-vote/:voterId/:category', async (req, res) => {
+    try {
+        const { voterId, category } = req.params;
+
+        if (!voterId || !category) {
+            return res.status(400).json({ error: 'Voter ID and category are required' });
+        }
+
+        // Validate category
+        const validCategories = ['couple', 'funny', 'scary', 'overall'];
+        if (!validCategories.includes(category)) {
+            return res.status(400).json({ error: 'Invalid category' });
+        }
+
+        const deleted = await database.deleteVote(voterId, category);
+
+        res.json({
+            success: true,
+            deleted: deleted,
+            message: 'Vote removed!'
+        });
+    } catch (error) {
+        console.error('Delete vote error:', error);
+        res.status(500).json({ error: 'Failed to delete vote' });
+    }
+});
+
 // Get detailed vote statistics
 app.get('/api/vote-stats', async (req, res) => {
     try {

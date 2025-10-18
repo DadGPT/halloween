@@ -276,6 +276,126 @@ class DatabaseService {
             throw error;
         }
     }
+
+    // Get votes for a specific voter
+    async getVoterVotes(voterId) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
+        try {
+            console.log(`Getting votes for voter: ${voterId}`);
+            const { data, error } = await this.supabase
+                .from('costume_votes')
+                .select('*')
+                .eq('voter_id', voterId);
+
+            if (error) {
+                console.error('Error fetching voter votes:', error);
+                throw error;
+            }
+
+            console.log(`Found ${data?.length || 0} votes for voter`);
+            return data || [];
+        } catch (error) {
+            console.error('Failed to get voter votes:', error.message);
+            throw error;
+        }
+    }
+
+    // Submit or update a vote
+    async submitVote(voterId, entryId, category) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
+        try {
+            console.log(`Submitting vote: voter=${voterId}, entry=${entryId}, category=${category}`);
+
+            // Use upsert to insert or update if vote already exists
+            const { data, error } = await this.supabase
+                .from('costume_votes')
+                .upsert(
+                    {
+                        voter_id: voterId,
+                        entry_id: entryId,
+                        category: category,
+                        voted_at: new Date().toISOString()
+                    },
+                    {
+                        onConflict: 'voter_id,category',
+                        ignoreDuplicates: false
+                    }
+                )
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error submitting vote:', error);
+                throw error;
+            }
+
+            console.log('Vote submitted successfully');
+
+            // Also update the vote count on the contest entry
+            await this.addVote(entryId, category);
+
+            return data;
+        } catch (error) {
+            console.error('Failed to submit vote:', error.message);
+            throw error;
+        }
+    }
+
+    // Delete a vote
+    async deleteVote(voterId, category) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
+        try {
+            console.log(`Deleting vote: voter=${voterId}, category=${category}`);
+
+            // First get the vote to know which entry to decrement
+            const { data: vote, error: fetchError } = await this.supabase
+                .from('costume_votes')
+                .select('entry_id')
+                .eq('voter_id', voterId)
+                .eq('category', category)
+                .single();
+
+            if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+                console.error('Error fetching vote for deletion:', fetchError);
+                throw fetchError;
+            }
+
+            if (vote) {
+                // Remove the vote from costume_votes table
+                const { error: deleteError } = await this.supabase
+                    .from('costume_votes')
+                    .delete()
+                    .eq('voter_id', voterId)
+                    .eq('category', category);
+
+                if (deleteError) {
+                    console.error('Error deleting vote:', deleteError);
+                    throw deleteError;
+                }
+
+                // Decrement the vote count on the entry
+                await this.removeVote(vote.entry_id, category);
+
+                console.log('Vote deleted successfully');
+                return true;
+            }
+
+            console.log('No vote found to delete');
+            return false;
+        } catch (error) {
+            console.error('Failed to delete vote:', error.message);
+            throw error;
+        }
+    }
 }
 
 module.exports = DatabaseService;

@@ -794,6 +794,7 @@
             overall: null
         };
         let currentCategory = null;
+        let voterId = null; // Unique voter ID
         
         // Secret key sequence
         let keySequence = '';
@@ -807,13 +808,25 @@
             { id: 'overall', name: 'Best Overall', emoji: '🏆', filter: e => true }
         ];
 
+        // Get or create voter ID
+        function getVoterId() {
+            let id = localStorage.getItem('halloweenVoterId');
+            if (!id) {
+                // Generate a unique voter ID
+                id = 'voter_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                localStorage.setItem('halloweenVoterId', id);
+            }
+            return id;
+        }
+
         // Initialize
         async function init() {
+            voterId = getVoterId();
             await loadEntries();
-            loadVotes();
+            await loadVotes();
             renderCategories();
             updateLockButton();
-            
+
             // Prevent bounce scrolling on iOS
             document.addEventListener('touchmove', function(e) {
                 if (e.target.closest('.main-scroll') || e.target.closest('.voting-scroll')) {
@@ -860,16 +873,29 @@
         }
 
         // Load votes from session
-        function loadVotes() {
-            const saved = sessionStorage.getItem('halloweenVotes');
-            if (saved) {
-                votes = JSON.parse(saved);
+        // Load votes from API
+        async function loadVotes() {
+            try {
+                const response = await fetch(`/api/voter-votes/${voterId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Convert array of vote objects to votes object
+                    votes = {
+                        couple: null,
+                        funny: null,
+                        scary: null,
+                        overall: null
+                    };
+                    data.votes.forEach(vote => {
+                        votes[vote.category] = vote.entry_id;
+                    });
+                    console.log('Loaded votes from API:', votes);
+                } else {
+                    console.error('Failed to load votes from API');
+                }
+            } catch (error) {
+                console.error('Error loading votes:', error);
             }
-        }
-
-        // Save votes to session
-        function saveVotes() {
-            sessionStorage.setItem('halloweenVotes', JSON.stringify(votes));
         }
 
         // Render category buttons
@@ -951,36 +977,70 @@
         }
 
         // Select vote
-        function selectVote(entryId) {
+        async function selectVote(entryId) {
             if (!currentCategory) return;
-            
-            // Toggle selection
-            if (votes[currentCategory.id] === entryId) {
-                votes[currentCategory.id] = null;
-                showToast('Vote removed');
-            } else {
-                votes[currentCategory.id] = entryId;
-                showToast('Vote selected!');
-            }
-            
-            saveVotes();
-            renderCategories();
-            updateLockButton();
-            
-            // Update overlay
-            const options = document.querySelectorAll('.vote-option');
-            options.forEach(option => {
-                const name = option.querySelector('.vote-option-name').textContent;
-                const entry = entries.find(e => e.name === name);
-                if (entry) {
-                    option.classList.toggle('selected', entry.id === votes[currentCategory.id]);
+
+            try {
+                // Check if removing vote or adding/changing vote
+                if (votes[currentCategory.id] === entryId) {
+                    // Remove vote
+                    const response = await fetch(`/api/voter-vote/${voterId}/${currentCategory.id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        votes[currentCategory.id] = null;
+                        showToast('Vote removed');
+                    } else {
+                        const error = await response.json();
+                        showToast('Failed to remove vote: ' + error.error);
+                        return;
+                    }
+                } else {
+                    // Add or change vote
+                    const response = await fetch('/api/submit-vote', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            voterId: voterId,
+                            entryId: entryId,
+                            category: currentCategory.id
+                        })
+                    });
+
+                    if (response.ok) {
+                        votes[currentCategory.id] = entryId;
+                        showToast('Vote submitted!');
+                    } else {
+                        const error = await response.json();
+                        showToast('Failed to submit vote: ' + error.error);
+                        return;
+                    }
                 }
-            });
-            
-            // Auto-close after selection
-            setTimeout(() => {
-                closeVotingOverlay();
-            }, 500);
+
+                renderCategories();
+                updateLockButton();
+
+                // Update overlay
+                const options = document.querySelectorAll('.vote-option');
+                options.forEach(option => {
+                    const name = option.querySelector('.vote-option-name').textContent;
+                    const entry = entries.find(e => e.name === name);
+                    if (entry) {
+                        option.classList.toggle('selected', entry.id === votes[currentCategory.id]);
+                    }
+                });
+
+                // Auto-close after selection
+                setTimeout(() => {
+                    closeVotingOverlay();
+                }, 500);
+            } catch (error) {
+                console.error('Error submitting vote:', error);
+                showToast('An error occurred. Please try again.');
+            }
         }
 
         // Update bottom buttons visibility
