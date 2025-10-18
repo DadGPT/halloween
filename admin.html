@@ -1433,9 +1433,7 @@
                                 ${winner && winner.votes > 0 ? `
                                     <div class="winner">
                                         <div class="avatar">
-                                            ${winner.avatarType === 'image'
-                                                ? `<img src="${winner.image}" alt="${winner.name}">`
-                                                : winner.emoji}
+                                            <img src="${winner.cloud_url || winner.image_url || winner.image}" alt="${winner.name}">
                                         </div>
                                         <div class="winner-info">
                                             <div class="winner-name">🏆 ${winner.name}</div>
@@ -1450,9 +1448,7 @@
                                                 <div class="entry-result ${index === 0 ? 'first-place' : ''}">
                                                     <span class="rank">${index + 1}.</span>
                                                     <div class="result-avatar">
-                                                        ${entry.avatarType === 'image'
-                                                            ? `<img src="${entry.image}" alt="${entry.name}">`
-                                                            : entry.emoji}
+                                                        <img src="${entry.cloud_url || entry.image_url || entry.image}" alt="${entry.name}">
                                                     </div>
                                                     <span class="result-name">${entry.name}</span>
                                                     <span class="result-votes">${entry.votes} votes</span>
