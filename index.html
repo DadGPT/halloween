@@ -827,6 +827,10 @@
             renderCategories();
             updateLockButton();
 
+            // Set up periodic vote sync (every 10 seconds)
+            // This ensures the UI updates if an admin resets votes
+            setInterval(syncVotesWithServer, 10000);
+
             // Prevent bounce scrolling on iOS
             document.addEventListener('touchmove', function(e) {
                 if (e.target.closest('.main-scroll') || e.target.closest('.voting-scroll')) {
@@ -834,6 +838,49 @@
                 }
                 e.preventDefault();
             }, { passive: false });
+        }
+
+        // Sync votes with server to detect if admin has reset them
+        async function syncVotesWithServer() {
+            try {
+                const response = await fetch(`/api/voter-votes/${voterId}`);
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Convert server votes to local format
+                    const serverVotes = {
+                        couple: null,
+                        funny: null,
+                        scary: null,
+                        overall: null
+                    };
+                    data.votes.forEach(vote => {
+                        serverVotes[vote.category] = vote.entry_id;
+                    });
+
+                    // Check if any votes were removed (exist locally but not on server)
+                    let votesChanged = false;
+                    for (const category in votes) {
+                        if (votes[category] !== null && serverVotes[category] === null) {
+                            // Vote was removed by admin
+                            votes[category] = null;
+                            votesChanged = true;
+                        }
+                    }
+
+                    // Update UI if votes were changed
+                    if (votesChanged) {
+                        console.log('Votes were reset by admin - updating UI');
+                        renderCategories();
+                        updateLockButton();
+                        // Optionally show a toast notification
+                        // showToast('Your votes were reset by an admin');
+                    }
+                }
+            } catch (error) {
+                console.error('Error syncing votes with server:', error);
+                // Don't show error to user - this is a background operation
+            }
         }
 
         // Load entries from API
