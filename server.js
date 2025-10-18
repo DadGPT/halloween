@@ -625,8 +625,12 @@ app.get('/api/vote-stats', async (req, res) => {
                         type: entry.type,
                         votes: entry.votes[category],
                         avatar_type: entry.avatar_type,
+                        avatarType: entry.avatar_type, // Legacy support
                         image_url: entry.image_url,
-                        avatar: entry.avatar
+                        cloud_url: entry.cloud_url,
+                        image: entry.image_url || entry.cloud_url, // Legacy support
+                        avatar: entry.avatar,
+                        emoji: entry.emoji
                     }))
                     .sort((a, b) => b.votes - a.votes);
 
