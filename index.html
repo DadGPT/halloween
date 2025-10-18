@@ -898,9 +898,7 @@
                     ${hasVote && votedEntry ? `
                         <div class="vote-preview">
                             <div class="vote-avatar">
-                                ${votedEntry.avatarType === 'image' 
-                                    ? `<img src="${votedEntry.image}" alt="${votedEntry.name}">` 
-                                    : votedEntry.emoji || votedEntry.avatar}
+                                <img src="${votedEntry.cloud_url || votedEntry.image_url || votedEntry.image}" alt="${votedEntry.name}">
                             </div>
                             <div class="vote-name">${votedEntry.name}</div>
                             <button class="edit-btn" type="button" onclick="handleEdit(event, '${category.id}', '${category.name}', '${category.emoji}')">✎</button>
@@ -932,12 +930,10 @@
                 `;
             } else {
                 grid.innerHTML = filteredEntries.map(entry => `
-                    <div class="vote-option ${votes[category.id] === entry.id ? 'selected' : ''}" 
+                    <div class="vote-option ${votes[category.id] === entry.id ? 'selected' : ''}"
                          onclick="selectVote(${entry.id})">
                         <div class="vote-option-avatar">
-                            ${entry.avatarType === 'image' 
-                                ? `<img src="${entry.image}" alt="${entry.name}">` 
-                                : `<span>${entry.emoji || entry.avatar || '👻'}</span>`}
+                            <img src="${entry.cloud_url || entry.image_url || entry.image}" alt="${entry.name}">
                         </div>
                         <div class="vote-option-name">${entry.name}</div>
                         <div class="vote-option-type">${entry.type === 'couple' ? 'Couple/Group' : 'Individual'}</div>
