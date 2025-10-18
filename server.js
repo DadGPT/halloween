@@ -509,12 +509,14 @@ app.use((error, req, res, next) => {
     res.status(500).json({ error: error.message || 'Internal server error' });
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`🎃 Halloween Contest Server running on http://localhost:${PORT}`);
-    console.log(`📱 Welcome page: http://localhost:${PORT}/welcome`);
-    console.log(`🗳️  Voting page: http://localhost:${PORT}/vote`);
-    console.log(`🔧 Admin page: http://localhost:${PORT}/admin`);
-});
+// Start server (only if not running in serverless environment)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`🎃 Halloween Contest Server running on http://localhost:${PORT}`);
+        console.log(`📱 Welcome page: http://localhost:${PORT}/welcome`);
+        console.log(`🗳️  Voting page: http://localhost:${PORT}/vote`);
+        console.log(`🔧 Admin page: http://localhost:${PORT}/admin`);
+    });
+}
 
 module.exports = app;
