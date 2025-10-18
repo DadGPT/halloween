@@ -5,13 +5,17 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const CloudStorageService = require('./storage');
+const DatabaseService = require('./database');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize cloud storage service
+// Initialize cloud storage service (for images)
 const cloudStorage = new CloudStorageService();
+
+// Initialize database service (for contest data)
+const database = new DatabaseService();
 
 // Enable CORS for all origins (you may want to restrict this in production)
 app.use(cors());
@@ -46,99 +50,8 @@ const upload = multer({
     }
 });
 
-// Default contest entries
-const DEFAULT_ENTRIES = [
-    {
-        id: 1,
-        name: "Vampire Duo",
-        type: "couple",
-        emoji: "🧛‍♂️",
-        avatarType: "emoji",
-        avatar: "🧛‍♂️",
-        votes: { couple: 0, funny: 0, scary: 0, overall: 0 }
-    },
-    {
-        id: 2,
-        name: "Zombie Squad",
-        type: "couple",
-        emoji: "🧟‍♀️",
-        avatarType: "emoji",
-        avatar: "🧟‍♀️",
-        votes: { couple: 0, funny: 0, scary: 0, overall: 0 }
-    },
-    {
-        id: 3,
-        name: "Ghost Twins",
-        type: "couple",
-        emoji: "👻",
-        avatarType: "emoji",
-        avatar: "👻",
-        votes: { couple: 0, funny: 0, scary: 0, overall: 0 }
-    },
-    {
-        id: 4,
-        name: "Clown Prince",
-        type: "individual",
-        emoji: "🤡",
-        avatarType: "emoji",
-        avatar: "🤡",
-        votes: { couple: 0, funny: 0, scary: 0, overall: 0 }
-    },
-    {
-        id: 5,
-        name: "Witch Doctor",
-        type: "individual",
-        emoji: "🧙‍♀️",
-        avatarType: "emoji",
-        avatar: "🧙‍♀️",
-        votes: { couple: 0, funny: 0, scary: 0, overall: 0 }
-    },
-    {
-        id: 6,
-        name: "Pumpkin King",
-        type: "individual",
-        emoji: "🎃",
-        avatarType: "emoji",
-        avatar: "🎃",
-        votes: { couple: 0, funny: 0, scary: 0, overall: 0 }
-    }
-];
-
-// Storage for contest entries (loaded from cloud storage)
-let contestEntries = [...DEFAULT_ENTRIES];
-
-// Helper functions for persistent storage
-async function loadContestData() {
-    try {
-        console.log('Loading contest data from cloud storage...');
-        const data = await cloudStorage.loadData('contest-data.json');
-        if (data && data.entries) {
-            contestEntries = data.entries;
-            console.log(`Loaded ${contestEntries.length} contest entries from cloud storage`);
-        } else {
-            console.log('No existing contest data found, using defaults');
-        }
-    } catch (error) {
-        console.error('Error loading contest data:', error.message);
-        console.error('Load error stack:', error.stack);
-        console.error('Load error code:', error.code);
-    }
-}
-
-async function saveContestData() {
-    try {
-        console.log(`Saving contest data (${contestEntries.length} entries) to cloud storage...`);
-        await cloudStorage.saveData('contest-data.json', {
-            entries: contestEntries,
-            lastUpdated: new Date().toISOString()
-        });
-        console.log('Contest data saved successfully');
-    } catch (error) {
-        console.error('Error saving contest data:', error.message);
-        console.error('Save error stack:', error.stack);
-        console.error('Save error code:', error.code);
-    }
-}
+// Note: Contest entries are now stored in Supabase database
+// No in-memory storage needed - database handles persistence
 
 // Timing settings storage
 let timingSettings = {
@@ -245,11 +158,11 @@ app.get('/voting-closed', (req, res) => {
 // Get all contest entries
 app.get('/api/entries', async (req, res) => {
     try {
-        await loadContestData();
-        res.json(contestEntries);
+        const entries = await database.getEntries();
+        res.json(entries);
     } catch (error) {
         console.error('Error loading entries:', error);
-        res.json(contestEntries); // Return current state even if load fails
+        res.status(500).json({ error: 'Failed to load entries' });
     }
 });
 
@@ -318,26 +231,20 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
             name: name.trim(),
             description: description.trim(),
             type: type,
-            avatarType: 'image',
-            image: imageUrl,
-            cloudUrl: uploadResult?.publicUrl || null,
+            avatar_type: 'image',
+            image_url: imageUrl,
+            cloud_url: uploadResult?.publicUrl || null,
             votes: { couple: 0, funny: 0, scary: 0, overall: 0 },
-            uploadedAt: new Date().toISOString()
+            uploaded_at: new Date().toISOString()
         };
 
-        console.log('Loading contest data...');
-        await loadContestData(); // Load latest data before adding
-
-        console.log('Adding new entry...');
-        contestEntries.push(newEntry);
-
-        console.log('Saving contest data...');
-        await saveContestData(); // Save after adding
+        console.log('Saving entry to database...');
+        const savedEntry = await database.addEntry(newEntry);
 
         console.log('Upload successful!');
         res.json({
             success: true,
-            entry: newEntry,
+            entry: savedEntry,
             message: 'Photo uploaded successfully!'
         });
 
@@ -377,18 +284,13 @@ app.post('/api/vote', async (req, res) => {
             return res.status(400).json({ error: 'Entry ID and category are required' });
         }
 
-        await loadContestData(); // Load latest data
-        const entry = contestEntries.find(e => e.id === entryId);
-        if (!entry) {
-            return res.status(404).json({ error: 'Entry not found' });
-        }
-
-        if (!entry.votes.hasOwnProperty(category)) {
+        // Validate category
+        const validCategories = ['couple', 'funny', 'scary', 'overall'];
+        if (!validCategories.includes(category)) {
             return res.status(400).json({ error: 'Invalid category' });
         }
 
-        entry.votes[category]++;
-        await saveContestData(); // Save after voting
+        const entry = await database.addVote(entryId, category);
 
         res.json({
             success: true,
@@ -403,15 +305,22 @@ app.post('/api/vote', async (req, res) => {
 });
 
 // Get voting results
-app.get('/api/results', (req, res) => {
-    const results = {
-        couple: contestEntries.filter(e => e.type === 'couple').sort((a, b) => b.votes.couple - a.votes.couple),
-        funny: contestEntries.sort((a, b) => b.votes.funny - a.votes.funny),
-        scary: contestEntries.sort((a, b) => b.votes.scary - a.votes.scary),
-        overall: contestEntries.sort((a, b) => b.votes.overall - a.votes.overall)
-    };
+app.get('/api/results', async (req, res) => {
+    try {
+        const entries = await database.getEntries();
 
-    res.json(results);
+        const results = {
+            couple: entries.filter(e => e.type === 'couple').sort((a, b) => b.votes.couple - a.votes.couple),
+            funny: [...entries].sort((a, b) => b.votes.funny - a.votes.funny),
+            scary: [...entries].sort((a, b) => b.votes.scary - a.votes.scary),
+            overall: [...entries].sort((a, b) => b.votes.overall - a.votes.overall)
+        };
+
+        res.json(results);
+    } catch (error) {
+        console.error('Error getting results:', error);
+        res.status(500).json({ error: 'Failed to get results' });
+    }
 });
 
 // Remove a single vote from an entry
@@ -423,22 +332,13 @@ app.post('/api/remove-vote', async (req, res) => {
             return res.status(400).json({ error: 'Entry ID and category are required' });
         }
 
-        await loadContestData();
-        const entry = contestEntries.find(e => e.id === entryId);
-        if (!entry) {
-            return res.status(404).json({ error: 'Entry not found' });
-        }
-
-        if (!entry.votes.hasOwnProperty(category)) {
+        // Validate category
+        const validCategories = ['couple', 'funny', 'scary', 'overall'];
+        if (!validCategories.includes(category)) {
             return res.status(400).json({ error: 'Invalid category' });
         }
 
-        if (entry.votes[category] <= 0) {
-            return res.status(400).json({ error: 'No votes to remove in this category' });
-        }
-
-        entry.votes[category]--;
-        await saveContestData();
+        const entry = await database.removeVote(entryId, category);
 
         res.json({
             success: true,
@@ -455,21 +355,14 @@ app.post('/api/remove-vote', async (req, res) => {
 // Reset all votes
 app.post('/api/reset-votes', async (req, res) => {
     try {
-        await loadContestData();
-        contestEntries.forEach(entry => {
-            entry.votes = {
-                couple: 0,
-                funny: 0,
-                scary: 0,
-                overall: 0
-            };
-        });
-        await saveContestData();
+        await database.resetVotes();
+
+        const entries = await database.getEntries();
 
         res.json({
             success: true,
             message: 'All votes reset!',
-            entries: contestEntries
+            entries: entries
         });
 
     } catch (error) {
@@ -479,13 +372,15 @@ app.post('/api/reset-votes', async (req, res) => {
 });
 
 // Get detailed vote statistics
-app.get('/api/vote-stats', (req, res) => {
+app.get('/api/vote-stats', async (req, res) => {
     try {
+        const entries = await database.getEntries();
+
         const stats = {
             categories: ['couple', 'funny', 'scary', 'overall'].map(category => {
                 const categoryEntries = category === 'couple'
-                    ? contestEntries.filter(e => e.type === 'couple')
-                    : contestEntries;
+                    ? entries.filter(e => e.type === 'couple')
+                    : entries;
 
                 const totalVotes = categoryEntries.reduce((sum, entry) => sum + entry.votes[category], 0);
                 const sortedEntries = categoryEntries
@@ -494,9 +389,9 @@ app.get('/api/vote-stats', (req, res) => {
                         name: entry.name,
                         type: entry.type,
                         votes: entry.votes[category],
-                        avatarType: entry.avatarType,
-                        image: entry.image,
-                        emoji: entry.emoji || entry.avatar
+                        avatar_type: entry.avatar_type,
+                        image_url: entry.image_url,
+                        avatar: entry.avatar
                     }))
                     .sort((a, b) => b.votes - a.votes);
 
@@ -506,8 +401,8 @@ app.get('/api/vote-stats', (req, res) => {
                     entries: sortedEntries
                 };
             }),
-            totalEntries: contestEntries.length,
-            grandTotalVotes: contestEntries.reduce((sum, entry) => {
+            totalEntries: entries.length,
+            grandTotalVotes: entries.reduce((sum, entry) => {
                 return sum + Object.values(entry.votes).reduce((s, v) => s + v, 0);
             }, 0)
         };
