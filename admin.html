@@ -1247,6 +1247,7 @@
         let entries = [];
         let selectedEmoji = null;
         let selectedImage = null;
+        let uploadedFile = null; // Store the actual File object for server upload
         let activeAvatarType = 'emoji';
         
         // Edit state
@@ -1338,6 +1339,7 @@
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (file && file.type.startsWith('image/')) {
+                uploadedFile = file; // Store the actual File object for upload
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     selectedImage = e.target.result;
@@ -1351,12 +1353,13 @@
         // Remove image
         function removeImage() {
             selectedImage = null;
+            uploadedFile = null;
             document.getElementById('imageUpload').value = '';
             document.getElementById('imagePreview').style.display = 'none';
         }
 
         // Add entry
-        function addEntry() {
+        async function addEntry() {
             const name = document.getElementById('entryName').value.trim();
             const type = document.getElementById('entryType').value;
 
@@ -1384,36 +1387,77 @@
                 avatarType = 'image';
             }
 
-            const entry = {
-                id: Date.now(),
-                name: name,
-                type: type,
-                avatarType: avatarType,
-                avatar: avatarData,
-                emoji: avatarType === 'emoji' ? avatarData : null,
-                image: avatarType === 'image' ? avatarData : null,
-                votes: {
-                    couple: 0,
-                    funny: 0,
-                    scary: 0,
-                    overall: 0
+            // For image entries, upload to server
+            if (avatarType === 'image' && uploadedFile) {
+                try {
+                    const formData = new FormData();
+                    formData.append('photo', uploadedFile);
+                    formData.append('name', name);
+                    formData.append('type', type);
+                    formData.append('description', '');
+
+                    console.log('Uploading entry to server...');
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Upload failed');
+                    }
+
+                    const result = await response.json();
+                    console.log('Upload successful:', result);
+
+                    // Reload entries from server
+                    await loadEntries();
+                    renderEntries();
+                    updateStats();
+
+                    // Reset form
+                    document.getElementById('entryName').value = '';
+                    document.getElementById('entryType').value = 'individual';
+                    removeImage();
+                    switchAvatarTab('emoji');
+
+                    showToast('Entry added successfully! 🎉');
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showToast('Failed to upload: ' + error.message);
                 }
-            };
+            } else {
+                // For emoji entries, add locally (for now)
+                const entry = {
+                    id: Date.now(),
+                    name: name,
+                    type: type,
+                    avatarType: avatarType,
+                    avatar: avatarData,
+                    emoji: avatarType === 'emoji' ? avatarData : null,
+                    image: avatarType === 'image' ? avatarData : null,
+                    votes: {
+                        couple: 0,
+                        funny: 0,
+                        scary: 0,
+                        overall: 0
+                    }
+                };
 
-            entries.push(entry);
-            saveEntries();
+                entries.push(entry);
+                saveEntries();
 
-            // Reset form
-            document.getElementById('entryName').value = '';
-            document.getElementById('entryType').value = 'individual';
-            document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('selected'));
-            selectedEmoji = null;
-            removeImage();
-            switchAvatarTab('emoji');
+                // Reset form
+                document.getElementById('entryName').value = '';
+                document.getElementById('entryType').value = 'individual';
+                document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('selected'));
+                selectedEmoji = null;
+                switchAvatarTab('emoji');
 
-            renderEntries();
-            updateStats();
-            showToast('Entry added successfully! 🎉');
+                renderEntries();
+                updateStats();
+                showToast('Entry added successfully! 🎉');
+            }
         }
 
         // Delete entry
