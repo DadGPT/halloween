@@ -123,6 +123,43 @@ class CloudStorageService {
             return false;
         }
     }
+
+    // Save JSON data to cloud storage
+    async saveData(filename, data) {
+        try {
+            const file = this.bucket.file(filename);
+            await file.save(JSON.stringify(data, null, 2), {
+                contentType: 'application/json',
+                metadata: {
+                    cacheControl: 'no-cache',
+                },
+            });
+            console.log(`Data saved to ${filename}`);
+            return true;
+        } catch (error) {
+            console.error('Save data error:', error);
+            throw error;
+        }
+    }
+
+    // Load JSON data from cloud storage
+    async loadData(filename) {
+        try {
+            const file = this.bucket.file(filename);
+            const [exists] = await file.exists();
+
+            if (!exists) {
+                console.log(`File ${filename} does not exist, returning null`);
+                return null;
+            }
+
+            const [contents] = await file.download();
+            return JSON.parse(contents.toString('utf-8'));
+        } catch (error) {
+            console.error('Load data error:', error);
+            return null;
+        }
+    }
 }
 
 module.exports = CloudStorageService;

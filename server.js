@@ -39,8 +39,8 @@ const upload = multer({
     }
 });
 
-// In-memory storage for contest entries (in production, use a database)
-let contestEntries = [
+// Default contest entries
+const DEFAULT_ENTRIES = [
     {
         id: 1,
         name: "Vampire Duo",
@@ -96,6 +96,35 @@ let contestEntries = [
         votes: { couple: 0, funny: 0, scary: 0, overall: 0 }
     }
 ];
+
+// Storage for contest entries (loaded from cloud storage)
+let contestEntries = [...DEFAULT_ENTRIES];
+
+// Helper functions for persistent storage
+async function loadContestData() {
+    try {
+        const data = await cloudStorage.loadData('contest-data.json');
+        if (data && data.entries) {
+            contestEntries = data.entries;
+            console.log(`Loaded ${contestEntries.length} contest entries from cloud storage`);
+        } else {
+            console.log('No existing contest data found, using defaults');
+        }
+    } catch (error) {
+        console.error('Error loading contest data:', error);
+    }
+}
+
+async function saveContestData() {
+    try {
+        await cloudStorage.saveData('contest-data.json', {
+            entries: contestEntries,
+            lastUpdated: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error saving contest data:', error);
+    }
+}
 
 // Timing settings storage
 let timingSettings = {
@@ -200,8 +229,14 @@ app.get('/voting-closed', (req, res) => {
 // API Routes
 
 // Get all contest entries
-app.get('/api/entries', (req, res) => {
-    res.json(contestEntries);
+app.get('/api/entries', async (req, res) => {
+    try {
+        await loadContestData();
+        res.json(contestEntries);
+    } catch (error) {
+        console.error('Error loading entries:', error);
+        res.json(contestEntries); // Return current state even if load fails
+    }
 });
 
 // Upload image and create new contest entry
@@ -261,7 +296,9 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
             uploadedAt: new Date().toISOString()
         };
 
+        await loadContestData(); // Load latest data before adding
         contestEntries.push(newEntry);
+        await saveContestData(); // Save after adding
 
         res.json({
             success: true,
@@ -279,7 +316,7 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
 app.use('/uploads', express.static(uploadsDir));
 
 // Vote for an entry
-app.post('/api/vote', (req, res) => {
+app.post('/api/vote', async (req, res) => {
     try {
         // Check timing permissions
         const currentPhase = getCurrentPhase();
@@ -297,6 +334,7 @@ app.post('/api/vote', (req, res) => {
             return res.status(400).json({ error: 'Entry ID and category are required' });
         }
 
+        await loadContestData(); // Load latest data
         const entry = contestEntries.find(e => e.id === entryId);
         if (!entry) {
             return res.status(404).json({ error: 'Entry not found' });
@@ -307,6 +345,7 @@ app.post('/api/vote', (req, res) => {
         }
 
         entry.votes[category]++;
+        await saveContestData(); // Save after voting
 
         res.json({
             success: true,
@@ -333,7 +372,7 @@ app.get('/api/results', (req, res) => {
 });
 
 // Remove a single vote from an entry
-app.post('/api/remove-vote', (req, res) => {
+app.post('/api/remove-vote', async (req, res) => {
     try {
         const { entryId, category } = req.body;
 
@@ -341,6 +380,7 @@ app.post('/api/remove-vote', (req, res) => {
             return res.status(400).json({ error: 'Entry ID and category are required' });
         }
 
+        await loadContestData();
         const entry = contestEntries.find(e => e.id === entryId);
         if (!entry) {
             return res.status(404).json({ error: 'Entry not found' });
@@ -355,6 +395,7 @@ app.post('/api/remove-vote', (req, res) => {
         }
 
         entry.votes[category]--;
+        await saveContestData();
 
         res.json({
             success: true,
@@ -369,8 +410,9 @@ app.post('/api/remove-vote', (req, res) => {
 });
 
 // Reset all votes
-app.post('/api/reset-votes', (req, res) => {
+app.post('/api/reset-votes', async (req, res) => {
     try {
+        await loadContestData();
         contestEntries.forEach(entry => {
             entry.votes = {
                 couple: 0,
@@ -379,6 +421,7 @@ app.post('/api/reset-votes', (req, res) => {
                 overall: 0
             };
         });
+        await saveContestData();
 
         res.json({
             success: true,
