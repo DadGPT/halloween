@@ -339,7 +339,6 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
         console.error('Error code:', error.code);
-        console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
 
         res.status(500).json({
             error: 'Upload failed',

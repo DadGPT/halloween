@@ -81,7 +81,7 @@ class CloudStorageService {
                 stream.on('error', (error) => {
                     console.error('Upload stream error:', error.message);
                     console.error('Error code:', error.code);
-                    console.error('Error details:', JSON.stringify(error, null, 2));
+                    console.error('Error stack:', error.stack);
                     reject(error);
                 });
 
@@ -104,7 +104,7 @@ class CloudStorageService {
                     } catch (error) {
                         console.error('Error making file public:', error.message);
                         console.error('Error code:', error.code);
-                        console.error('Error details:', JSON.stringify(error, null, 2));
+                        console.error('Error stack:', error.stack);
                         reject(error);
                     }
                 });
@@ -117,7 +117,7 @@ class CloudStorageService {
         } catch (error) {
             console.error('Upload error in uploadImage:', error.message);
             console.error('Error code:', error.code);
-            console.error('Full error:', JSON.stringify(error, null, 2));
+            console.error('Error stack:', error.stack);
             throw error;
         }
     }
@@ -176,7 +176,7 @@ class CloudStorageService {
         } catch (error) {
             console.error(`Save data error for ${filename}:`, error.message);
             console.error('Error code:', error.code);
-            console.error('Error details:', JSON.stringify(error, null, 2));
+            console.error('Error stack:', error.stack);
             throw error;
         }
     }
@@ -202,7 +202,7 @@ class CloudStorageService {
         } catch (error) {
             console.error(`Load data error for ${filename}:`, error.message);
             console.error('Error code:', error.code);
-            console.error('Error details:', JSON.stringify(error, null, 2));
+            console.error('Error stack:', error.stack);
             return null;
         }
     }
