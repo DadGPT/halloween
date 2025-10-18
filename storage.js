@@ -4,13 +4,28 @@ const path = require('path');
 class CloudStorageService {
     constructor() {
         // Initialize Google Cloud Storage
-        // In production, set GOOGLE_APPLICATION_CREDENTIALS env variable
-        // or use the service account key from Pulumi
-        this.storage = new Storage({
+        // Support both file-based credentials (local) and JSON credentials (Vercel)
+        let storageConfig = {
             projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-            keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS, // Path to service account key
-        });
+        };
 
+        // Check if credentials are provided as a JSON string (for Vercel)
+        if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+            try {
+                // Decode base64 and parse JSON credentials
+                const credentials = JSON.parse(
+                    Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8')
+                );
+                storageConfig.credentials = credentials;
+            } catch (error) {
+                console.error('Error parsing service account key:', error);
+            }
+        } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+            // Use file-based credentials (for local development)
+            storageConfig.keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        }
+
+        this.storage = new Storage(storageConfig);
         this.bucketName = process.env.GOOGLE_CLOUD_BUCKET || 'halloween-contest-images';
         this.bucket = this.storage.bucket(this.bucketName);
     }
