@@ -124,11 +124,17 @@ class CloudStorageService {
                 stream.on('finish', async () => {
                     try {
                         console.log('File uploaded successfully, making it public...');
-                        // Make the file publicly readable
-                        await fileUpload.makePublic();
-                        console.log('File made public successfully');
 
-                        // Get the public URL
+                        // Try to make the file publicly readable
+                        try {
+                            await fileUpload.makePublic();
+                            console.log('File made public successfully');
+                        } catch (publicError) {
+                            console.warn('Could not make file public (bucket might already be public):', publicError.message);
+                            // Don't fail - the bucket might already have public access configured
+                        }
+
+                        // Get the public URL (works even if makePublic failed, as long as bucket is public)
                         const publicUrl = `https://storage.googleapis.com/${this.bucketName}/uploads/${filename}`;
                         console.log('Public URL:', publicUrl);
 
@@ -138,7 +144,7 @@ class CloudStorageService {
                             gsUrl: `gs://${this.bucketName}/uploads/${filename}`
                         });
                     } catch (error) {
-                        console.error('Error making file public:', error.message);
+                        console.error('Error in upload finish handler:', error.message);
                         console.error('Error code:', error.code);
                         console.error('Error stack:', error.stack);
                         reject(error);
