@@ -599,6 +599,18 @@ app.post('/api/submit-vote', async (req, res) => {
             return res.status(400).json({ error: 'Invalid category' });
         }
 
+        // Check if voter has already voted for this entry in another category
+        const existingVotes = await database.getVoterVotes(voterId);
+        const votedForEntryInOtherCategory = existingVotes.some(
+            vote => vote.entry_id === entryId && vote.category !== category
+        );
+
+        if (votedForEntryInOtherCategory) {
+            return res.status(400).json({
+                error: 'You have already voted for this entry in another category. Each costume can only be voted for once.'
+            });
+        }
+
         const vote = await database.submitVote(voterId, entryId, category);
 
         res.json({

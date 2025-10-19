@@ -1073,22 +1073,45 @@
             });
         }
 
+        // Check if an entry has already been voted for in another category
+        function hasVotedForEntryInOtherCategory(entryId, currentCategoryId) {
+            for (const category in votes) {
+                if (category !== currentCategoryId && votes[category] === entryId) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // Open voting overlay
         function openVotingOverlay(category) {
             currentCategory = category;
             const overlay = document.getElementById('votingOverlay');
             const title = document.getElementById('overlayTitle');
             const grid = document.getElementById('votingGrid');
-            
+
             title.textContent = `${category.emoji} ${category.name}`;
-            
-            const filteredEntries = entries.filter(category.filter);
-            
+
+            // Filter by category type (couple vs all)
+            let filteredEntries = entries.filter(category.filter);
+
+            // Further filter out entries already voted for in other categories
+            // BUT keep the current vote for this category if it exists
+            filteredEntries = filteredEntries.filter(entry => {
+                // Always show if it's the current vote for this category
+                if (votes[category.id] === entry.id) {
+                    return true;
+                }
+                // Hide if already voted for in another category
+                return !hasVotedForEntryInOtherCategory(entry.id, category.id);
+            });
+
             if (filteredEntries.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <div>No entries in this category</div>
+                        <div class="empty-state-icon">🎭</div>
+                        <div style="margin-top: 10px;">All available entries have been voted for in other categories!</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: rgba(255, 255, 255, 0.6);">Each costume can only be voted for once.</div>
                     </div>
                 `;
             } else {
@@ -1103,7 +1126,7 @@
                     </div>
                 `).join('');
             }
-            
+
             overlay.classList.add('active');
         }
 
@@ -1128,12 +1151,20 @@
                     if (response.ok) {
                         votes[currentCategory.id] = null;
                         showToast('Vote removed');
+                        // Reopen overlay to show newly available entries
+                        openVotingOverlay(currentCategory);
                     } else {
                         const error = await response.json();
                         showToast('Failed to remove vote: ' + error.error);
                         return;
                     }
                 } else {
+                    // Check if this entry is already voted for in another category
+                    if (hasVotedForEntryInOtherCategory(entryId, currentCategory.id)) {
+                        showToast('You already voted for this costume in another category!');
+                        return;
+                    }
+
                     // Add or change vote
                     const response = await fetch('/api/submit-vote', {
                         method: 'POST',
