@@ -198,6 +198,47 @@
             margin-bottom: 15px;
         }
 
+        /* Add Entry Card */
+        .add-entry-card {
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.15), rgba(0, 200, 0, 0.1));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 255, 0, 0.4);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .add-entry-card:active {
+            transform: scale(0.98);
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.25), rgba(0, 200, 0, 0.15));
+        }
+
+        .add-entry-icon {
+            font-size: 2.5em;
+            flex-shrink: 0;
+        }
+
+        .add-entry-text {
+            flex: 1;
+        }
+
+        .add-entry-title {
+            color: #00ff00;
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .add-entry-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+        }
+
         .party-decorations {
             display: flex;
             justify-content: center;
@@ -740,6 +781,15 @@
                         </div>
                     </div>
 
+                    <!-- Add Entry Card -->
+                    <div class="add-entry-card" onclick="openAddEntryOverlay()">
+                        <div class="add-entry-icon">➕</div>
+                        <div class="add-entry-text">
+                            <div class="add-entry-title">Add Your Costume Entry</div>
+                            <div class="add-entry-subtitle">Join the contest!</div>
+                        </div>
+                    </div>
+
                     <!-- Categories Grid -->
                     <div class="categories-grid" id="categoriesGrid"></div>
                 </div>
@@ -776,6 +826,46 @@
             </div>
             <div class="voting-scroll">
                 <div class="voting-grid" id="votingGrid"></div>
+            </div>
+            </div>
+
+            <!-- Add Entry Overlay -->
+            <div class="voting-overlay" id="addEntryOverlay">
+            <div class="overlay-header">
+                <div class="back-btn" onclick="closeAddEntryOverlay()">‹</div>
+                <div class="overlay-title">Add Your Costume Entry</div>
+            </div>
+            <div class="voting-scroll">
+                <div style="padding: 20px 15px;">
+                    <div class="form-group">
+                        <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;">Your Name / Team Name</label>
+                        <input type="text" id="newEntryName" placeholder="e.g., The Addams Family" style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 107, 0, 0.3); background: rgba(255, 255, 255, 0.05); color: white; font-size: 1em;">
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;">Entry Type</label>
+                        <select id="newEntryType" style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 107, 0, 0.3); background: rgba(255, 255, 255, 0.05); color: white; font-size: 1em;">
+                            <option value="individual">Individual</option>
+                            <option value="couple">Couple/Group</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;">Take a Photo</label>
+                        <input type="file" id="newEntryPhoto" accept="image/*" capture="environment" style="display: none;" onchange="handleNewEntryPhoto(event)">
+                        <label for="newEntryPhoto" style="display: block; padding: 40px; border: 3px dashed rgba(255, 107, 0, 0.5); border-radius: 12px; text-align: center; cursor: pointer; background: rgba(0, 0, 0, 0.3);">
+                            <div style="font-size: 3em; margin-bottom: 10px;">📸</div>
+                            <div style="color: rgba(255, 255, 255, 0.7);">Tap to take photo</div>
+                        </label>
+                        <div id="newEntryPhotoPreview" style="display: none; margin-top: 15px; text-align: center;">
+                            <img id="newEntryPhotoImg" style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px; border: 3px solid #ff6b00;">
+                        </div>
+                    </div>
+
+                    <button onclick="submitNewEntry()" style="width: 100%; margin-top: 25px; padding: 18px; border: none; border-radius: 15px; background: linear-gradient(135deg, #00ff00, #00cc00); color: #000; font-size: 1.1em; font-weight: 700; cursor: pointer; text-transform: uppercase;">
+                        Submit Entry 🎃
+                    </button>
+                </div>
             </div>
             </div>
 
@@ -1295,9 +1385,88 @@
             }
         }
 
+        // Add Entry Functions
+        let newEntryPhotoFile = null;
+
+        function openAddEntryOverlay() {
+            document.getElementById('addEntryOverlay').classList.add('active');
+        }
+
+        function closeAddEntryOverlay() {
+            document.getElementById('addEntryOverlay').classList.remove('active');
+            // Reset form
+            document.getElementById('newEntryName').value = '';
+            document.getElementById('newEntryType').value = 'individual';
+            document.getElementById('newEntryPhoto').value = '';
+            document.getElementById('newEntryPhotoPreview').style.display = 'none';
+            newEntryPhotoFile = null;
+        }
+
+        function handleNewEntryPhoto(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                newEntryPhotoFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('newEntryPhotoImg').src = e.target.result;
+                    document.getElementById('newEntryPhotoPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function submitNewEntry() {
+            const name = document.getElementById('newEntryName').value.trim();
+            const type = document.getElementById('newEntryType').value;
+
+            if (!name) {
+                showToast('Please enter a name!');
+                return;
+            }
+
+            if (!newEntryPhotoFile) {
+                showToast('Please take a photo!');
+                return;
+            }
+
+            try {
+                showToast('Uploading entry...');
+
+                const formData = new FormData();
+                formData.append('photo', newEntryPhotoFile);
+                formData.append('name', name);
+                formData.append('type', type);
+                formData.append('description', '');
+
+                console.log('Uploading entry to server...');
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Upload failed');
+                }
+
+                const result = await response.json();
+                console.log('Upload successful:', result);
+
+                // Reload entries
+                await loadEntries();
+                renderCategories();
+
+                closeAddEntryOverlay();
+                showToast('Entry added successfully! 🎉');
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Failed to upload: ' + error.message);
+            }
+        }
+
         // Initialize on load
         window.addEventListener('load', init);
-        
+
         // Add secret key listener
         document.addEventListener('keydown', handleSecretKey);
     </script>
