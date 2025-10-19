@@ -740,6 +740,112 @@
                 padding-bottom: max(15px, env(safe-area-inset-bottom));
             }
         }
+
+        /* Custom Confirmation Modal */
+        .confirm-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 11000;
+            padding: 20px;
+        }
+
+        .confirm-modal-overlay.active {
+            display: flex;
+        }
+
+        .confirm-modal {
+            background: linear-gradient(135deg, rgba(30, 0, 50, 0.95), rgba(10, 0, 30, 0.95));
+            border: 3px solid #ff6b00;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(255, 107, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .confirm-modal-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .confirm-modal-title {
+            color: #ff6b00;
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .confirm-modal-message {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1em;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .confirm-modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .confirm-modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .confirm-modal-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .confirm-modal-cancel:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .confirm-modal-confirm {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            color: white;
+            border: 2px solid #ff6b00;
+        }
+
+        .confirm-modal-confirm:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, #ff8c00, #ff6b00);
+        }
     </style>
 </head>
 <body>
@@ -871,6 +977,19 @@
 
             <!-- Toast -->
             <div class="toast" id="toast"></div>
+
+            <!-- Custom Confirmation Modal -->
+            <div class="confirm-modal-overlay" id="confirmModalOverlay">
+                <div class="confirm-modal">
+                    <div class="confirm-modal-icon">⚠️</div>
+                    <div class="confirm-modal-title" id="confirmModalTitle">Confirm Action</div>
+                    <div class="confirm-modal-message" id="confirmModalMessage">Are you sure?</div>
+                    <div class="confirm-modal-buttons">
+                        <button class="confirm-modal-btn confirm-modal-cancel" id="confirmModalCancel">Cancel</button>
+                        <button class="confirm-modal-btn confirm-modal-confirm" id="confirmModalConfirm">Confirm</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1246,14 +1365,17 @@
         }
 
         // Lock votes
-        function lockVotes() {
+        async function lockVotes() {
             const allVoted = categories.every(cat => votes[cat.id] !== null);
             if (!allVoted) {
                 showToast('Please vote in all categories first!');
                 return;
             }
-            
-            const confirmed = confirm('Are you sure you want to lock in your votes? This cannot be undone!');
+
+            const confirmed = await showConfirm(
+                'Are you sure you want to lock in your votes? This cannot be undone!',
+                'Lock In Votes'
+            );
             if (!confirmed) return;
             
             // Update vote counts in entries
@@ -1292,7 +1414,11 @@
 
         // Reset votes
         async function resetVotes() {
-            if (!confirm('Reset all your votes?')) {
+            const confirmed = await showConfirm(
+                'Reset all your votes?',
+                'Reset Votes'
+            );
+            if (!confirmed) {
                 return;
             }
 
@@ -1334,11 +1460,15 @@
 
         // Reset votes from bottom button
         async function resetVotesBottom() {
-            if (!confirm('Reset all your votes?')) {
+            const confirmed = await showConfirm(
+                'Reset all your votes?',
+                'Reset Votes'
+            );
+            if (!confirmed) {
                 return;
             }
 
-            try {
+            try{
                 // Delete all votes for this voter from the database
                 const categoriesToDelete = ['couple', 'funny', 'scary', 'overall'];
                 const deletePromises = [];
@@ -1395,6 +1525,40 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2000);
+        }
+
+        // Custom confirmation modal (replaces browser confirm())
+        function showConfirm(message, title = 'Confirm Action') {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('confirmModalOverlay');
+                const titleEl = document.getElementById('confirmModalTitle');
+                const messageEl = document.getElementById('confirmModalMessage');
+                const cancelBtn = document.getElementById('confirmModalCancel');
+                const confirmBtn = document.getElementById('confirmModalConfirm');
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                overlay.classList.add('active');
+
+                const cleanup = () => {
+                    overlay.classList.remove('active');
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                };
+
+                const handleCancel = () => {
+                    cleanup();
+                    resolve(false);
+                };
+
+                const handleConfirm = () => {
+                    cleanup();
+                    resolve(true);
+                };
+
+                cancelBtn.addEventListener('click', handleCancel);
+                confirmBtn.addEventListener('click', handleConfirm);
+            });
         }
 
         // Secret key sequence handler
