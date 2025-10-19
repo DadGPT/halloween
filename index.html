@@ -861,6 +861,106 @@
             transform: scale(0.95);
             background: linear-gradient(135deg, #ff8c00, #ff6b00);
         }
+
+        /* About Modal */
+        .about-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 11000;
+            padding: 20px;
+        }
+
+        .about-modal-overlay.active {
+            display: flex;
+        }
+
+        .about-modal {
+            background: linear-gradient(135deg, rgba(30, 0, 50, 0.95), rgba(10, 0, 30, 0.95));
+            border: 3px solid #ff6b00;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 50px rgba(255, 107, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+            overflow: hidden;
+        }
+
+        .about-modal-header {
+            background: rgba(255, 107, 0, 0.2);
+            padding: 20px;
+            border-bottom: 2px solid rgba(255, 107, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .about-modal-header h2 {
+            color: #ff6b00;
+            font-size: 1.5em;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .close-about {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: 2px solid #ff6b00;
+            border-radius: 50%;
+            color: #ff6b00;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-about:active {
+            transform: scale(0.95);
+            background: rgba(255, 107, 0, 0.2);
+        }
+
+        .about-modal-content {
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        .about-modal-content p {
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .thumbs-up-container {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 107, 0, 0.2);
+        }
+
+        .thumbs-up-icon {
+            font-size: 3em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-block;
+            user-select: none;
+        }
+
+        .thumbs-up-icon:active {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
@@ -935,7 +1035,6 @@
                 <div class="close-menu" onclick="toggleMenu()">×</div>
             </div>
             <div class="menu-items">
-                <a href="/admin" class="menu-item">🔧 Admin Panel</a>
                 <a href="#" class="menu-item" onclick="resetVotes(); return false;">🔄 Reset My Votes</a>
                 <a href="#" class="menu-item" onclick="showAbout(); return false;">ℹ️ About</a>
             </div>
@@ -1008,6 +1107,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- About Modal -->
+            <div class="about-modal-overlay" id="aboutModalOverlay">
+                <div class="about-modal">
+                    <div class="about-modal-header">
+                        <h2>About</h2>
+                        <button class="close-about" onclick="closeAboutModal()">×</button>
+                    </div>
+                    <div class="about-modal-content">
+                        <p>This app was created as a prototype for future productization by <strong>Non-Fiction</strong>.</p>
+                        <p>If you own or work for a company that needs AI services, consulting, app development, or other related marketing services, please talk to Jesse or Jessica.</p>
+                        <div class="thumbs-up-container">
+                            <div class="thumbs-up-icon" id="thumbsUpIcon" onclick="handleThumbsUpTap()">👍</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1023,10 +1139,14 @@
         let currentCategory = null;
         let voterId = null;
         let myEntry = null; // Track user's self-submitted entry // Unique voter ID
-        
+
         // Secret key sequence
         let keySequence = '';
         let secretTrigger = 'ttttt';
+
+        // Thumbs up tap counter for hidden admin access
+        let thumbsUpTaps = 0;
+        let thumbsUpTimeout = null;
 
         // Categories configuration
         const categories = [
@@ -1569,8 +1689,58 @@
 
         // Show about
         function showAbout() {
-            showToast('Halloween Contest v2.0 🎃');
+            const overlay = document.getElementById('aboutModalOverlay');
+            overlay.classList.add('active');
             toggleMenu();
+            // Reset tap counter when opening modal
+            thumbsUpTaps = 0;
+        }
+
+        // Close about modal
+        function closeAboutModal() {
+            const overlay = document.getElementById('aboutModalOverlay');
+            overlay.classList.remove('active');
+            // Reset tap counter when closing
+            thumbsUpTaps = 0;
+            if (thumbsUpTimeout) {
+                clearTimeout(thumbsUpTimeout);
+                thumbsUpTimeout = null;
+            }
+        }
+
+        // Handle thumbs up tap for hidden admin access
+        function handleThumbsUpTap() {
+            thumbsUpTaps++;
+            console.log('Thumbs up taps:', thumbsUpTaps);
+
+            // Reset counter after 3 seconds of inactivity
+            if (thumbsUpTimeout) {
+                clearTimeout(thumbsUpTimeout);
+            }
+            thumbsUpTimeout = setTimeout(() => {
+                thumbsUpTaps = 0;
+            }, 3000);
+
+            // After 5 taps, prompt for PIN
+            if (thumbsUpTaps >= 5) {
+                thumbsUpTaps = 0; // Reset counter
+                if (thumbsUpTimeout) {
+                    clearTimeout(thumbsUpTimeout);
+                    thumbsUpTimeout = null;
+                }
+
+                // Prompt for PIN
+                const pin = prompt('Enter admin PIN:');
+
+                // Check if PIN is correct
+                if (pin === '7827') {
+                    closeAboutModal();
+                    window.location.href = '/admin';
+                } else if (pin !== null) {
+                    // User entered something but it was wrong
+                    showToast('Incorrect PIN');
+                }
+            }
         }
 
         // Show toast
