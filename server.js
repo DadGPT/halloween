@@ -246,6 +246,28 @@ app.get('/api/entries', async (req, res) => {
     }
 });
 
+// Get entry by submitter (for self-service entries)
+app.get('/api/my-entry/:voterId', async (req, res) => {
+    try {
+        const { voterId } = req.params;
+        if (!voterId) {
+            return res.status(400).json({ error: 'Voter ID is required' });
+        }
+
+        const entries = await database.getEntries();
+        const myEntry = entries.find(e => e.submitted_by === voterId);
+
+        if (myEntry) {
+            res.json({ success: true, entry: myEntry });
+        } else {
+            res.json({ success: true, entry: null });
+        }
+    } catch (error) {
+        console.error('Error loading my entry:', error);
+        res.status(500).json({ error: 'Failed to load entry' });
+    }
+});
+
 // Upload image and create new contest entry
 app.post('/api/upload', upload.single('photo'), async (req, res) => {
     try {
@@ -317,6 +339,9 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
             console.log('Saved to local storage:', imageUrl);
         }
 
+        // Get submitter info (if provided, for self-service entries)
+        const submittedBy = req.body.submittedBy || null;
+
         // Create new contest entry
         const newEntry = {
             id: Date.now(), // Simple ID generation
@@ -327,7 +352,8 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
             image_url: imageUrl,
             cloud_url: uploadResult?.publicUrl || null,
             votes: { couple: 0, funny: 0, scary: 0, overall: 0 },
-            uploaded_at: new Date().toISOString()
+            uploaded_at: new Date().toISOString(),
+            submitted_by: submittedBy
         };
 
         console.log('Saving entry to database...');

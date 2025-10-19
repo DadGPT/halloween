@@ -957,18 +957,18 @@
                     </div>
 
                     <div class="form-group" style="margin-top: 20px;">
-                        <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;">Take a Photo</label>
+                        <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;" id="photoLabel">Take a Photo</label>
                         <input type="file" id="newEntryPhoto" accept="image/*" capture="environment" style="display: none;" onchange="handleNewEntryPhoto(event)">
                         <label for="newEntryPhoto" style="display: block; padding: 40px; border: 3px dashed rgba(255, 107, 0, 0.5); border-radius: 12px; text-align: center; cursor: pointer; background: rgba(0, 0, 0, 0.3);">
                             <div style="font-size: 3em; margin-bottom: 10px;">📸</div>
-                            <div style="color: rgba(255, 255, 255, 0.7);">Tap to take photo</div>
+                            <div style="color: rgba(255, 255, 255, 0.7);" id="photoPrompt">Tap to take photo</div>
                         </label>
                         <div id="newEntryPhotoPreview" style="display: none; margin-top: 15px; text-align: center;">
                             <img id="newEntryPhotoImg" style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px; border: 3px solid #ff6b00;">
                         </div>
                     </div>
 
-                    <button onclick="submitNewEntry()" style="width: 100%; margin-top: 25px; padding: 18px; border: none; border-radius: 15px; background: linear-gradient(135deg, #00ff00, #00cc00); color: #000; font-size: 1.1em; font-weight: 700; cursor: pointer; text-transform: uppercase;">
+                    <button onclick="submitNewEntry()" id="submitEntryBtn" style="width: 100%; margin-top: 25px; padding: 18px; border: none; border-radius: 15px; background: linear-gradient(135deg, #00ff00, #00cc00); color: #000; font-size: 1.1em; font-weight: 700; cursor: pointer; text-transform: uppercase;">
                         Submit Entry 🎃
                     </button>
                 </div>
@@ -1003,7 +1003,8 @@
             overall: null
         };
         let currentCategory = null;
-        let voterId = null; // Unique voter ID
+        let voterId = null;
+        let myEntry = null; // Track user's self-submitted entry // Unique voter ID
         
         // Secret key sequence
         let keySequence = '';
@@ -1028,11 +1029,44 @@
             return id;
         }
 
+        // Load user's own entry (if they've submitted one)
+        async function loadMyEntry() {
+            try {
+                const response = await fetch(`/api/my-entry/${voterId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    myEntry = data.entry;
+                    updateAddEntryCard();
+                    console.log('My entry:', myEntry);
+                }
+            } catch (error) {
+                console.error('Error loading my entry:', error);
+            }
+        }
+
+        // Update the "Add Entry" card based on whether user has an entry
+        function updateAddEntryCard() {
+            const card = document.querySelector('.add-entry-card');
+            if (!card) return;
+
+            const title = card.querySelector('.add-entry-title');
+            const subtitle = card.querySelector('.add-entry-subtitle');
+
+            if (myEntry) {
+                title.textContent = 'Edit Your Costume Entry';
+                subtitle.textContent = `${myEntry.name}`;
+            } else {
+                title.textContent = 'Add Your Costume Entry';
+                subtitle.textContent = 'Join the contest!';
+            }
+        }
+
         // Initialize
         async function init() {
             voterId = getVoterId();
             await loadEntries();
             await loadVotes();
+            await loadMyEntry();
             renderCategories();
             updateLockButton();
 
@@ -1584,7 +1618,34 @@
         let newEntryPhotoFile = null;
 
         function openAddEntryOverlay() {
-            document.getElementById('addEntryOverlay').classList.add('active');
+            const overlay = document.getElementById('addEntryOverlay');
+            const title = overlay.querySelector('.overlay-title');
+            const photoLabel = document.getElementById('photoLabel');
+            const photoPrompt = document.getElementById('photoPrompt');
+            const submitBtn = document.getElementById('submitEntryBtn');
+
+            // If editing, pre-fill the form
+            if (myEntry) {
+                title.textContent = 'Edit Your Costume Entry';
+                document.getElementById('newEntryName').value = myEntry.name;
+                document.getElementById('newEntryType').value = myEntry.type;
+                photoLabel.textContent = 'Change Photo (Optional)';
+                photoPrompt.textContent = 'Tap to change photo';
+                submitBtn.textContent = 'Update Entry 🎃';
+
+                // Show current photo
+                if (myEntry.cloud_url || myEntry.image_url) {
+                    document.getElementById('newEntryPhotoImg').src = myEntry.cloud_url || myEntry.image_url;
+                    document.getElementById('newEntryPhotoPreview').style.display = 'block';
+                }
+            } else {
+                title.textContent = 'Add Your Costume Entry';
+                photoLabel.textContent = 'Take a Photo';
+                photoPrompt.textContent = 'Tap to take photo';
+                submitBtn.textContent = 'Submit Entry 🎃';
+            }
+
+            overlay.classList.add('active');
         }
 
         function closeAddEntryOverlay() {
@@ -1619,43 +1680,99 @@
                 return;
             }
 
-            if (!newEntryPhotoFile) {
+            // If editing and no new photo, that's okay - we keep the old photo
+            // If creating new entry, require a photo
+            if (!myEntry && !newEntryPhotoFile) {
                 showToast('Please take a photo!');
                 return;
             }
 
             try {
-                showToast('Uploading entry...');
+                if (myEntry) {
+                    // UPDATE existing entry
+                    showToast('Updating entry...');
 
-                const formData = new FormData();
-                formData.append('photo', newEntryPhotoFile);
-                formData.append('name', name);
-                formData.append('type', type);
-                formData.append('description', '');
+                    // If there's a new photo, upload it
+                    if (newEntryPhotoFile) {
+                        const formData = new FormData();
+                        formData.append('photo', newEntryPhotoFile);
+                        formData.append('name', name);
+                        formData.append('type', type);
+                        formData.append('description', '');
+                        formData.append('submittedBy', voterId);
 
-                console.log('Uploading entry to server...');
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
+                        const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Upload failed');
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || 'Upload failed');
+                        }
+
+                        const result = await response.json();
+                        const newImageUrl = result.entry.cloud_url || result.entry.image_url;
+
+                        // Update entry with new photo
+                        await fetch(`/api/entries/${myEntry.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name,
+                                type,
+                                image_url: result.entry.image_url,
+                                cloud_url: result.entry.cloud_url
+                            })
+                        });
+                    } else {
+                        // Just update name/type without changing photo
+                        const response = await fetch(`/api/entries/${myEntry.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, type })
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || 'Update failed');
+                        }
+                    }
+
+                    showToast('Entry updated successfully! 🎉');
+                } else {
+                    // CREATE new entry
+                    showToast('Uploading entry...');
+
+                    const formData = new FormData();
+                    formData.append('photo', newEntryPhotoFile);
+                    formData.append('name', name);
+                    formData.append('type', type);
+                    formData.append('description', '');
+                    formData.append('submittedBy', voterId);
+
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Upload failed');
+                    }
+
+                    showToast('Entry added successfully! 🎉');
                 }
 
-                const result = await response.json();
-                console.log('Upload successful:', result);
-
-                // Reload entries
+                // Reload entries and my entry
                 await loadEntries();
+                await loadMyEntry();
                 renderCategories();
 
                 closeAddEntryOverlay();
-                showToast('Entry added successfully! 🎉');
             } catch (error) {
-                console.error('Upload error:', error);
-                showToast('Failed to upload: ' + error.message);
+                console.error('Submit error:', error);
+                showToast('Failed: ' + error.message);
             }
         }
 
