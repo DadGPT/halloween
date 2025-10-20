@@ -958,35 +958,6 @@
             transform: scale(1.2);
         }
 
-        /* Karaoke Song List */
-        .song-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .song-item {
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(255, 107, 0, 0.3);
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 12px;
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1em;
-            transition: all 0.2s;
-        }
-
-        .song-item:hover {
-            background: rgba(255, 107, 0, 0.2);
-            border-color: rgba(255, 107, 0, 0.5);
-        }
-
-        .song-number {
-            color: #ff6b00;
-            font-weight: 700;
-            margin-right: 10px;
-        }
-
         /* Directions Button */
         .directions-btn {
             width: 100%;
@@ -1104,7 +1075,7 @@
             </div>
             <div class="menu-items">
                 <a href="#" class="menu-item" onclick="showGame(); return false;">🎮 The Game: Haunted House Hunters</a>
-                <a href="#" class="menu-item" onclick="showKaraoke(); return false;">🎤 Karaoke Songs</a>
+                <a href="/karaoke" class="menu-item">🎤 Karaoke Royale</a>
                 <a href="#" class="menu-item" onclick="showDirections(); return false;">🗺️ Directions</a>
                 <a href="#" class="menu-item" onclick="resetVotes(); return false;">🔄 Reset My Votes</a>
                 <a href="#" class="menu-item" onclick="showAbout(); return false;">ℹ️ About</a>
@@ -1192,25 +1163,6 @@
                         <div class="thumbs-up-container">
                             <div class="thumbs-up-icon" id="thumbsUpIcon" onclick="handleThumbsUpTap()">👍</div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Karaoke Modal -->
-            <div class="about-modal-overlay" id="karaokeModalOverlay">
-                <div class="about-modal">
-                    <div class="about-modal-header">
-                        <h2>🎤 Karaoke Songs</h2>
-                        <button class="close-about" onclick="closeKaraokeModal()">×</button>
-                    </div>
-                    <div class="about-modal-content">
-                        <ul class="song-list">
-                            <li class="song-item"><span class="song-number">1.</span>Lorem ipsum dolor sit amet consectetur</li>
-                            <li class="song-item"><span class="song-number">2.</span>Adipiscing elit sed do eiusmod tempor</li>
-                            <li class="song-item"><span class="song-number">3.</span>Incididunt ut labore et dolore magna</li>
-                            <li class="song-item"><span class="song-number">4.</span>Aliqua ut enim ad minim veniam quis</li>
-                            <li class="song-item"><span class="song-number">5.</span>Nostrud exercitation ullamco laboris nisi</li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -1871,19 +1823,6 @@
                     showToast('Incorrect PIN');
                 }
             }
-        }
-
-        // Show karaoke modal
-        function showKaraoke() {
-            const overlay = document.getElementById('karaokeModalOverlay');
-            overlay.classList.add('active');
-            toggleMenu();
-        }
-
-        // Close karaoke modal
-        function closeKaraokeModal() {
-            const overlay = document.getElementById('karaokeModalOverlay');
-            overlay.classList.remove('active');
         }
 
         // Show directions modal

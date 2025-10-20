@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Karaoke Royale - Halloween Party</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #000;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Mobile Frame for Desktop */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                padding: 20px;
+            }
+
+            .mobile-frame {
+                width: 390px;
+                height: 844px;
+                background: #000;
+                border-radius: 40px;
+                box-shadow: 0 0 0 12px #222, 0 0 0 14px #000, 0 20px 60px rgba(0,0,0,0.5);
+                overflow: hidden;
+                position: relative;
+            }
+
+            .mobile-frame::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 150px;
+                height: 30px;
+                background: #000;
+                border-radius: 0 0 20px 20px;
+                z-index: 10;
+            }
+
+            .app-container {
+                height: 100%;
+                position: relative;
+                overflow: hidden;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .mobile-frame {
+                width: 100vw;
+                height: 100vh;
+            }
+
+            .app-container {
+                width: 100vw;
+                height: 100vh;
+                position: relative;
+                overflow: hidden;
+            }
+        }
+
+        /* App Styles */
+        .app-container {
+            background: linear-gradient(180deg, #1a0033 0%, #330066 50%, #4d0099 100%);
+            position: relative;
+        }
+
+        .app-content {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: rgba(26, 0, 51, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            padding: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 107, 0, 0.2);
+            border: 2px solid #ff6b00;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #ff6b00;
+            font-size: 1.5em;
+            text-decoration: none;
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 107, 0, 0.4);
+        }
+
+        .header h1 {
+            font-size: 1.3em;
+            color: #ff6b00;
+            font-weight: 700;
+            text-align: center;
+            flex: 1;
+        }
+
+        /* Content */
+        .content-wrapper {
+            padding: 20px;
+        }
+
+        .intro-card {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 107, 0, 0.3);
+        }
+
+        .intro-card h2 {
+            color: #ff6b00;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .intro-card p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .song-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            border: 2px solid rgba(255, 107, 0, 0.2);
+        }
+
+        .song-section h3 {
+            color: #ff8c00;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .song-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .song-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 107, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+
+        .song-item:hover {
+            background: rgba(255, 107, 0, 0.2);
+            border-color: rgba(255, 107, 0, 0.5);
+        }
+
+        .song-number {
+            color: #ff6b00;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-frame">
+        <div class="app-container">
+            <div class="app-content">
+                <!-- Header -->
+                <div class="header">
+                    <div class="header-content">
+                        <a href="/" class="back-btn">‹</a>
+                        <h1>🎤 Karaoke Royale 🎤</h1>
+                        <div style="width: 40px;"></div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="content-wrapper">
+                    <div class="intro-card">
+                        <h2>Welcome to Karaoke Royale!</h2>
+                        <p>Browse through our song suggestions below to spark your creativity and get the party started! These are just thought starters to inspire you.</p>
+                        <p>Feel free to choose any song you'd like from YouTube, Spotify, or anywhere online. The stage is yours!</p>
+                    </div>
+
+                    <div class="song-section">
+                        <h3>Featured Song Ideas</h3>
+                        <ul class="song-list">
+                            <li class="song-item"><span class="song-number">1.</span>Lorem ipsum dolor sit amet consectetur</li>
+                            <li class="song-item"><span class="song-number">2.</span>Adipiscing elit sed do eiusmod tempor</li>
+                            <li class="song-item"><span class="song-number">3.</span>Incididunt ut labore et dolore magna</li>
+                            <li class="song-item"><span class="song-number">4.</span>Aliqua ut enim ad minim veniam quis</li>
+                            <li class="song-item"><span class="song-number">5.</span>Nostrud exercitation ullamco laboris nisi</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
