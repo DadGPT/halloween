@@ -1103,6 +1103,7 @@
                 <div class="close-menu" onclick="toggleMenu()">×</div>
             </div>
             <div class="menu-items">
+                <a href="#" class="menu-item" onclick="showGame(); return false;">🎮 The Game: Haunted House Hunters</a>
                 <a href="#" class="menu-item" onclick="showKaraoke(); return false;">🎤 Karaoke Songs</a>
                 <a href="#" class="menu-item" onclick="showDirections(); return false;">🗺️ Directions</a>
                 <a href="#" class="menu-item" onclick="resetVotes(); return false;">🔄 Reset My Votes</a>
@@ -1230,6 +1231,25 @@
                         <button class="directions-btn" onclick="openDirections()">
                             <span>📍</span>
                             <span>Get Directions</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Modal -->
+            <div class="about-modal-overlay" id="gameModalOverlay">
+                <div class="about-modal">
+                    <div class="about-modal-header">
+                        <h2>🎮 Haunted House Hunters</h2>
+                        <button class="close-about" onclick="closeGameModal()">×</button>
+                    </div>
+                    <div class="about-modal-content">
+                        <p>Welcome to <strong>Haunted House Hunters</strong>, the augmented reality game Jesse made for their yard decorations!</p>
+                        <p>This is an exciting AR race to capture ghosts that are haunting the house. Use your phone's camera to find and catch the spooky spirits hiding around the property.</p>
+                        <p>Ready to start your ghost hunting adventure?</p>
+                        <button class="directions-btn" onclick="launchGame()">
+                            <span>👻</span>
+                            <span>Launch Game</span>
                         </button>
                     </div>
                 </div>
@@ -1894,6 +1914,25 @@
                 // Use Google Maps on Android/other devices
                 window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
             }
+        }
+
+        // Show game modal
+        function showGame() {
+            const overlay = document.getElementById('gameModalOverlay');
+            overlay.classList.add('active');
+            toggleMenu();
+        }
+
+        // Close game modal
+        function closeGameModal() {
+            const overlay = document.getElementById('gameModalOverlay');
+            overlay.classList.remove('active');
+        }
+
+        // Launch the AR game in a new tab
+        function launchGame() {
+            window.open('https://hauntedhousehunters.vercel.app', '_blank');
+            closeGameModal();
         }
 
         // Show toast
