@@ -156,6 +156,10 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+app.get('/karaoke', (req, res) => {
+    res.sendFile(path.join(__dirname, 'karaoke.html'));
+});
+
 app.get('/thank-you', (req, res) => {
     res.sendFile(path.join(__dirname, 'thank-you.html'));
 });
