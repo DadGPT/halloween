@@ -238,6 +238,36 @@ app.get('/api/health', async (req, res) => {
     });
 });
 
+// Git commit info endpoint for debugging
+app.get('/api/version', (req, res) => {
+    const { execSync } = require('child_process');
+    let commitHash = 'unknown';
+    let commitDate = 'unknown';
+    let branch = 'unknown';
+
+    try {
+        // Get current commit hash (short version)
+        commitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+
+        // Get commit date
+        commitDate = execSync('git log -1 --format=%cd --date=short', { encoding: 'utf-8' }).trim();
+
+        // Get current branch
+        branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+    } catch (error) {
+        // If git commands fail (e.g., in production without .git), try Vercel env vars
+        commitHash = process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || 'unknown';
+        branch = process.env.VERCEL_GIT_COMMIT_REF || 'unknown';
+    }
+
+    res.json({
+        commit: commitHash,
+        date: commitDate,
+        branch: branch,
+        environment: process.env.VERCEL ? 'production' : 'development'
+    });
+});
+
 // Debug endpoint to check GCS credentials decoding
 app.get('/api/debug-gcs', async (req, res) => {
     if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
