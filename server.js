@@ -71,16 +71,50 @@ const upload = multer({
 // Timing settings storage
 let timingSettings = {
     enabled: false,
-    preShowStart: '2024-10-25T18:30',
-    preShowEnd: '2024-10-25T19:45',
-    votingStart: '2024-10-25T19:45',
-    votingEnd: '2024-10-25T20:15',
-    postVotingStart: '2024-10-25T20:15',
-    resultsTime: '2024-10-25T20:30',
+    preShowStart: '2025-10-25T18:30',
+    preShowEnd: '2025-10-25T19:45',
+    votingStart: '2025-10-25T19:45',
+    votingEnd: '2025-10-25T20:15',
+    postVotingStart: '2025-10-25T20:15',
+    resultsTime: '2025-10-25T20:30',
     manualOverride: null
 };
 
 // Timing helper functions
+// Convert a datetime-local string (YYYY-MM-DDTHH:MM) to Eastern Time Date object
+function parseEasternTime(dateTimeString) {
+    // datetime-local format: "2025-10-25T18:30"
+    // Treat this as Eastern Time and convert to UTC Date object
+    const easternTimeString = dateTimeString + ':00-04:00'; // EDT offset (October is EDT, not EST)
+    return new Date(easternTimeString);
+}
+
+// Get current time in Eastern timezone
+function getNowInEastern() {
+    const now = new Date();
+    // Convert to Eastern Time using Intl API
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+
+    const parts = formatter.formatToParts(now);
+    const dateObj = {};
+    parts.forEach(({ type, value }) => {
+        dateObj[type] = value;
+    });
+
+    // Create ISO string in Eastern Time then parse as UTC for comparison
+    const easternISO = `${dateObj.year}-${dateObj.month}-${dateObj.day}T${dateObj.hour}:${dateObj.minute}:${dateObj.second}`;
+    return new Date(easternISO + 'Z'); // Treat as UTC for comparison
+}
+
 function getCurrentPhase() {
     if (!timingSettings.enabled) {
         return { phase: 'disabled', canVote: true, canUpload: true };
@@ -95,13 +129,14 @@ function getCurrentPhase() {
         return phases[timingSettings.manualOverride] || phases['closed'];
     }
 
-    const now = new Date();
-    const preShowStart = new Date(timingSettings.preShowStart);
-    const preShowEnd = new Date(timingSettings.preShowEnd);
-    const votingStart = new Date(timingSettings.votingStart);
-    const votingEnd = new Date(timingSettings.votingEnd);
-    const postVotingStart = new Date(timingSettings.postVotingStart);
-    const resultsTime = new Date(timingSettings.resultsTime);
+    // Get current time in Eastern and convert settings times to Eastern
+    const now = getNowInEastern();
+    const preShowStart = new Date(timingSettings.preShowStart + ':00Z');
+    const preShowEnd = new Date(timingSettings.preShowEnd + ':00Z');
+    const votingStart = new Date(timingSettings.votingStart + ':00Z');
+    const votingEnd = new Date(timingSettings.votingEnd + ':00Z');
+    const postVotingStart = new Date(timingSettings.postVotingStart + ':00Z');
+    const resultsTime = new Date(timingSettings.resultsTime + ':00Z');
 
     if (now < preShowStart) {
         return { phase: 'beforeshow', canVote: false, canUpload: false };

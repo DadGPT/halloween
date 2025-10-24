@@ -1035,6 +1035,9 @@
                                     <option value="disabled">Disabled (Always Allow Voting)</option>
                                     <option value="enabled">Enabled (Time-Based Phases)</option>
                                 </select>
+                                <div style="margin-top: 8px; padding: 12px; background: rgba(0, 150, 255, 0.1); border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 8px; color: rgba(255, 255, 255, 0.9); font-size: 0.85em;">
+                                    <strong>ℹ️ Timezone:</strong> All times are in <strong>Eastern Time (ET)</strong>. The system automatically handles timezone conversion for both admins and voters, regardless of their local timezone.
+                                </div>
                             </div>
 
                         <div id="timingSettings" style="display: none;">
@@ -1042,12 +1045,12 @@
                                 <label>Pre-Show Period (Upload Only)</label>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time</label>
-                                        <input type="datetime-local" id="preShowStart" value="2024-10-25T18:30">
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time (ET)</label>
+                                        <input type="datetime-local" id="preShowStart" value="2025-10-25T18:30">
                                     </div>
                                     <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">End Time</label>
-                                        <input type="datetime-local" id="preShowEnd" value="2024-10-25T19:45">
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">End Time (ET)</label>
+                                        <input type="datetime-local" id="preShowEnd" value="2025-10-25T19:45">
                                     </div>
                                 </div>
                                 <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
@@ -1059,12 +1062,12 @@
                                 <label>Voting Period</label>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time</label>
-                                        <input type="datetime-local" id="votingStart" value="2024-10-25T19:45">
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time (ET)</label>
+                                        <input type="datetime-local" id="votingStart" value="2025-10-25T19:45">
                                     </div>
                                     <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">End Time</label>
-                                        <input type="datetime-local" id="votingEnd" value="2024-10-25T20:15">
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">End Time (ET)</label>
+                                        <input type="datetime-local" id="votingEnd" value="2025-10-25T20:15">
                                     </div>
                                 </div>
                                 <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
@@ -1076,12 +1079,12 @@
                                 <label>Post-Voting Period (Results)</label>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time</label>
-                                        <input type="datetime-local" id="postVotingStart" value="2024-10-25T20:15">
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time (ET)</label>
+                                        <input type="datetime-local" id="postVotingStart" value="2025-10-25T20:15">
                                     </div>
                                     <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Results Time</label>
-                                        <input type="datetime-local" id="resultsTime" value="2024-10-25T20:30">
+                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Results Time (ET)</label>
+                                        <input type="datetime-local" id="resultsTime" value="2025-10-25T20:30">
                                     </div>
                                 </div>
                                 <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
@@ -1824,12 +1827,12 @@
         // Timing Management Functions
         let timingSettings = {
             enabled: false,
-            preShowStart: '2024-10-25T18:30',
-            preShowEnd: '2024-10-25T19:45',
-            votingStart: '2024-10-25T19:45',
-            votingEnd: '2024-10-25T20:15',
-            postVotingStart: '2024-10-25T20:15',
-            resultsTime: '2024-10-25T20:30',
+            preShowStart: '2025-10-25T18:30',
+            preShowEnd: '2025-10-25T19:45',
+            votingStart: '2025-10-25T19:45',
+            votingEnd: '2025-10-25T20:15',
+            postVotingStart: '2025-10-25T20:15',
+            resultsTime: '2025-10-25T20:30',
             manualOverride: null // 'preshow', 'voting', 'closed', or null for auto
         };
 
@@ -1962,6 +1965,44 @@
             }
         }
 
+        // Get current time in Eastern timezone
+        function getNowInEastern() {
+            const now = new Date();
+            // Convert to Eastern Time using Intl API
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/New_York',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            const parts = formatter.formatToParts(now);
+            const dateObj = {};
+            parts.forEach(({ type, value }) => {
+                dateObj[type] = value;
+            });
+
+            // Create ISO string in Eastern Time then parse as UTC for comparison
+            const easternISO = `${dateObj.year}-${dateObj.month}-${dateObj.day}T${dateObj.hour}:${dateObj.minute}:${dateObj.second}`;
+            return new Date(easternISO + 'Z'); // Treat as UTC for comparison
+        }
+
+        // Format time for display in Eastern Time
+        function formatEasternTime(date) {
+            return date.toLocaleString('en-US', {
+                timeZone: 'America/New_York',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            }) + ' ET';
+        }
+
         function getCurrentPhase() {
             if (!timingSettings.enabled) {
                 return { phase: 'disabled', message: 'Timing controls disabled - voting always available' };
@@ -1976,41 +2017,42 @@
                 return phases[timingSettings.manualOverride] || phases['closed'];
             }
 
-            const now = new Date();
-            const preShowStart = new Date(timingSettings.preShowStart);
-            const preShowEnd = new Date(timingSettings.preShowEnd);
-            const votingStart = new Date(timingSettings.votingStart);
-            const votingEnd = new Date(timingSettings.votingEnd);
-            const postVotingStart = new Date(timingSettings.postVotingStart);
-            const resultsTime = new Date(timingSettings.resultsTime);
+            // Get current time in Eastern and convert settings times to Eastern for comparison
+            const now = getNowInEastern();
+            const preShowStart = new Date(timingSettings.preShowStart + ':00Z');
+            const preShowEnd = new Date(timingSettings.preShowEnd + ':00Z');
+            const votingStart = new Date(timingSettings.votingStart + ':00Z');
+            const votingEnd = new Date(timingSettings.votingEnd + ':00Z');
+            const postVotingStart = new Date(timingSettings.postVotingStart + ':00Z');
+            const resultsTime = new Date(timingSettings.resultsTime + ':00Z');
 
             if (now < preShowStart) {
                 return {
                     phase: 'beforeshow',
                     message: 'Contest not yet started',
                     icon: '⏰',
-                    next: `Pre-show starts ${preShowStart.toLocaleString()}`
+                    next: `Pre-show starts ${formatEasternTime(preShowStart)}`
                 };
             } else if (now >= preShowStart && now < preShowEnd) {
                 return {
                     phase: 'preshow',
                     message: 'Pre-show period - Upload costumes only',
                     icon: '🎭',
-                    next: `Voting starts ${votingStart.toLocaleString()}`
+                    next: `Voting starts ${formatEasternTime(votingStart)}`
                 };
             } else if (now >= votingStart && now < votingEnd) {
                 return {
                     phase: 'voting',
                     message: 'Voting is ACTIVE!',
                     icon: '🗳️',
-                    next: `Voting ends ${votingEnd.toLocaleString()}`
+                    next: `Voting ends ${formatEasternTime(votingEnd)}`
                 };
             } else if (now >= postVotingStart && now < resultsTime) {
                 return {
                     phase: 'closed',
                     message: 'Voting closed - Preparing results',
                     icon: '🔒',
-                    next: `Results announced ${resultsTime.toLocaleString()}`
+                    next: `Results announced ${formatEasternTime(resultsTime)}`
                 };
             } else {
                 return {
