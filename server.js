@@ -68,10 +68,10 @@ const upload = multer({
 // Note: Contest entries are now stored in Supabase database
 // No in-memory storage needed - database handles persistence
 
-// Timing settings storage - loaded from database
+// Timing settings storage - DISABLED (manual control only)
 let timingSettings = {
     enabled: false,
-    votingStart: '2025-10-25T19:00',
+    votingStart: '2025-10-25T19:30',
     votingEnd: '2025-10-25T21:00',
     manualOverride: null
 };
@@ -215,38 +215,10 @@ function getPhaseMessage(phase) {
 
 // Routes
 
-// Root route - redirect to appropriate page based on timing
-app.get('/', async (req, res) => {
-    console.log('=== / (root) route accessed ===');
-
-    // Reload timing settings from database
-    if (database.initialized) {
-        try {
-            await loadTimingSettings();
-            console.log('Timing settings reloaded for root route');
-        } catch (err) {
-            console.warn('Failed to reload timing settings:', err.message);
-        }
-    }
-
-    // Check current phase and redirect accordingly
-    const currentPhase = getCurrentPhase();
-    console.log('Root route - Current phase:', currentPhase.phase);
-
-    if (currentPhase.phase === 'preshow') {
-        console.log('➡️  Redirecting to /preshow');
-        return res.redirect('/preshow');
-    } else if (currentPhase.phase === 'voting' || currentPhase.phase === 'disabled') {
-        console.log('➡️  Redirecting to /vote');
-        return res.redirect('/vote');
-    } else if (currentPhase.phase === 'closed' || currentPhase.phase === 'results') {
-        console.log('➡️  Redirecting to /voting-closed');
-        return res.redirect('/voting-closed');
-    }
-
-    // Fallback to vote page
-    console.log('➡️  Fallback: Redirecting to /vote');
-    res.redirect('/vote');
+// Root route - redirect to preshow page (timing disabled)
+app.get('/', (req, res) => {
+    console.log('=== / (root) route accessed - redirecting to preshow ===');
+    res.redirect('/preshow');
 });
 
 app.get('/welcome', (req, res) => {
