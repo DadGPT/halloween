@@ -68,7 +68,7 @@ const upload = multer({
 // Note: Contest entries are now stored in Supabase database
 // No in-memory storage needed - database handles persistence
 
-// Timing settings storage
+// Timing settings storage - loaded from database
 let timingSettings = {
     enabled: false,
     preShowStart: '2025-10-25T18:30',
@@ -79,6 +79,25 @@ let timingSettings = {
     resultsTime: '2025-10-25T20:30',
     manualOverride: null
 };
+
+// Load timing settings from database
+async function loadTimingSettings() {
+    try {
+        const settings = await database.getTimingSettings();
+        timingSettings = settings;
+        console.log('Timing settings loaded from database:', timingSettings);
+    } catch (error) {
+        console.error('Failed to load timing settings from database:', error.message);
+        console.warn('Using default timing settings');
+    }
+}
+
+// Initialize timing settings on startup
+if (database.initialized) {
+    loadTimingSettings().catch(err => {
+        console.error('Error during timing settings initialization:', err);
+    });
+}
 
 // Timing helper functions
 // Convert a datetime-local string (YYYY-MM-DDTHH:MM) to Eastern Time Date object
@@ -819,7 +838,7 @@ app.get('/api/timing-status', (req, res) => {
 });
 
 // Update timing settings
-app.post('/api/timing-settings', (req, res) => {
+app.post('/api/timing-settings', async (req, res) => {
     try {
         const newSettings = req.body;
 
@@ -834,12 +853,12 @@ app.post('/api/timing-settings', (req, res) => {
 
             // Validate time order
             const times = [
-                new Date(newSettings.preShowStart),
-                new Date(newSettings.preShowEnd),
-                new Date(newSettings.votingStart),
-                new Date(newSettings.votingEnd),
-                new Date(newSettings.postVotingStart),
-                new Date(newSettings.resultsTime)
+                new Date(newSettings.preShowStart + ':00Z'),
+                new Date(newSettings.preShowEnd + ':00Z'),
+                new Date(newSettings.votingStart + ':00Z'),
+                new Date(newSettings.votingEnd + ':00Z'),
+                new Date(newSettings.postVotingStart + ':00Z'),
+                new Date(newSettings.resultsTime + ':00Z')
             ];
 
             for (let i = 0; i < times.length - 1; i++) {
@@ -849,15 +868,32 @@ app.post('/api/timing-settings', (req, res) => {
             }
         }
 
-        // Update settings
-        timingSettings = { ...timingSettings, ...newSettings };
-        console.log('Timing settings updated:', timingSettings);
+        // Merge with existing settings
+        const updatedSettings = { ...timingSettings, ...newSettings };
 
-        res.json({
-            success: true,
-            settings: timingSettings,
-            currentPhase: getCurrentPhase()
-        });
+        // Save to database
+        try {
+            const savedSettings = await database.updateTimingSettings(updatedSettings);
+            // Update in-memory cache
+            timingSettings = savedSettings;
+            console.log('Timing settings saved to database:', timingSettings);
+
+            res.json({
+                success: true,
+                settings: timingSettings,
+                currentPhase: getCurrentPhase()
+            });
+        } catch (dbError) {
+            console.error('Failed to save timing settings to database:', dbError);
+            // Still update in-memory for this session, but warn about persistence
+            timingSettings = updatedSettings;
+            res.json({
+                success: true,
+                settings: timingSettings,
+                currentPhase: getCurrentPhase(),
+                warning: 'Settings updated for this session but not persisted to database'
+            });
+        }
 
     } catch (error) {
         console.error('Update timing settings error:', error);

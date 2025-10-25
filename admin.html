@@ -1850,7 +1850,7 @@
             }
         }
 
-        function toggleTimingSettings() {
+        async function toggleTimingSettings() {
             const mode = document.getElementById('timingMode').value;
             const settings = document.getElementById('timingSettings');
             const overrides = document.getElementById('manualOverrides');
@@ -1876,8 +1876,24 @@
                 // toggle.textContent = '▶';
             }
 
+            // Save enabled state to database
+            try {
+                const response = await fetch('/api/timing-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(timingSettings)
+                });
+
+                if (response.ok) {
+                    console.log('Timing enabled state saved:', timingSettings.enabled);
+                } else {
+                    console.error('Failed to save timing enabled state');
+                }
+            } catch (error) {
+                console.error('Error saving timing enabled state:', error);
+            }
+
             updateTimingStatus();
-            saveTimingToLocalStorage();
         }
 
         async function saveTimingSettings() {
@@ -1918,7 +1934,6 @@
 
                 if (response.ok) {
                     showToast('Timing settings saved successfully!');
-                    saveTimingToLocalStorage();
                     updateTimingStatus();
                 } else {
                     throw new Error('Failed to save timing settings');
@@ -1929,25 +1944,30 @@
             }
         }
 
-        function saveTimingToLocalStorage() {
-            localStorage.setItem('contestTimingSettings', JSON.stringify(timingSettings));
-        }
+        // Load timing settings from API (database)
+        async function loadTimingFromAPI() {
+            try {
+                const response = await fetch('/api/timing-status');
+                if (response.ok) {
+                    const data = await response.json();
+                    timingSettings = data.settings;
 
-        function loadTimingFromLocalStorage() {
-            const saved = localStorage.getItem('contestTimingSettings');
-            if (saved) {
-                timingSettings = { ...timingSettings, ...JSON.parse(saved) };
+                    // Update form fields
+                    document.getElementById('timingMode').value = timingSettings.enabled ? 'enabled' : 'disabled';
+                    document.getElementById('preShowStart').value = timingSettings.preShowStart;
+                    document.getElementById('preShowEnd').value = timingSettings.preShowEnd;
+                    document.getElementById('votingStart').value = timingSettings.votingStart;
+                    document.getElementById('votingEnd').value = timingSettings.votingEnd;
+                    document.getElementById('postVotingStart').value = timingSettings.postVotingStart;
+                    document.getElementById('resultsTime').value = timingSettings.resultsTime;
 
-                // Update form fields
-                document.getElementById('timingMode').value = timingSettings.enabled ? 'enabled' : 'disabled';
-                document.getElementById('preShowStart').value = timingSettings.preShowStart;
-                document.getElementById('preShowEnd').value = timingSettings.preShowEnd;
-                document.getElementById('votingStart').value = timingSettings.votingStart;
-                document.getElementById('votingEnd').value = timingSettings.votingEnd;
-                document.getElementById('postVotingStart').value = timingSettings.postVotingStart;
-                document.getElementById('resultsTime').value = timingSettings.resultsTime;
-
-                toggleTimingSettings();
+                    toggleTimingSettings();
+                    console.log('Timing settings loaded from database:', timingSettings);
+                } else {
+                    console.error('Failed to load timing settings from API');
+                }
+            } catch (error) {
+                console.error('Error loading timing settings:', error);
             }
 
             // Set initial collapsed/expanded state based on timing enabled status
@@ -2129,13 +2149,12 @@
                 console.error('Error saving manual override:', error);
             }
 
-            saveTimingToLocalStorage();
             updateTimingStatus();
         }
 
         // Initialize timing on load
-        function initTiming() {
-            loadTimingFromLocalStorage();
+        async function initTiming() {
+            await loadTimingFromAPI();
             updateTimingStatus();
 
             // Update status every 30 seconds

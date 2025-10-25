@@ -432,6 +432,93 @@ class DatabaseService {
             throw error;
         }
     }
+
+    // Get timing settings (singleton row)
+    async getTimingSettings() {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
+        try {
+            console.log('Fetching timing settings from database...');
+            const { data, error } = await this.supabase
+                .from('timing_settings')
+                .select('*')
+                .eq('id', 1)
+                .single();
+
+            if (error) {
+                console.error('Error fetching timing settings:', error);
+                throw error;
+            }
+
+            console.log('Timing settings fetched successfully');
+            // Convert snake_case to camelCase for JavaScript
+            return {
+                enabled: data.enabled,
+                preShowStart: data.pre_show_start,
+                preShowEnd: data.pre_show_end,
+                votingStart: data.voting_start,
+                votingEnd: data.voting_end,
+                postVotingStart: data.post_voting_start,
+                resultsTime: data.results_time,
+                manualOverride: data.manual_override
+            };
+        } catch (error) {
+            console.error('Failed to get timing settings:', error.message);
+            throw error;
+        }
+    }
+
+    // Update timing settings
+    async updateTimingSettings(settings) {
+        if (!this.initialized || !this.supabase) {
+            throw new Error('Database service not initialized. Check Supabase credentials.');
+        }
+
+        try {
+            console.log('Updating timing settings in database...');
+            // Convert camelCase to snake_case for database
+            const dbSettings = {
+                enabled: settings.enabled,
+                pre_show_start: settings.preShowStart,
+                pre_show_end: settings.preShowEnd,
+                voting_start: settings.votingStart,
+                voting_end: settings.votingEnd,
+                post_voting_start: settings.postVotingStart,
+                results_time: settings.resultsTime,
+                manual_override: settings.manualOverride
+            };
+
+            const { data, error } = await this.supabase
+                .from('timing_settings')
+                .update(dbSettings)
+                .eq('id', 1)
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error updating timing settings:', error);
+                throw error;
+            }
+
+            console.log('Timing settings updated successfully');
+            // Convert back to camelCase for response
+            return {
+                enabled: data.enabled,
+                preShowStart: data.pre_show_start,
+                preShowEnd: data.pre_show_end,
+                votingStart: data.voting_start,
+                votingEnd: data.voting_end,
+                postVotingStart: data.post_voting_start,
+                resultsTime: data.results_time,
+                manualOverride: data.manual_override
+            };
+        } catch (error) {
+            console.error('Failed to update timing settings:', error.message);
+            throw error;
+        }
+    }
 }
 
 module.exports = DatabaseService;
