@@ -1306,9 +1306,9 @@
             renderCategories();
             updateLockButton();
 
-            // Set up periodic vote sync (every 10 seconds)
+            // Set up periodic vote sync (every 60 seconds / 1 minute)
             // This ensures the UI updates if an admin resets votes
-            setInterval(syncVotesWithServer, 10000);
+            setInterval(syncVotesWithServer, 60000);
         }
 
         // Sync votes with server to detect if admin has reset them
