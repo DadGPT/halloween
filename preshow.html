@@ -275,6 +275,53 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
+        .upload-section {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+        }
+
+        .upload-message {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            color: #00ff00;
+            text-align: center;
+            display: none;
+        }
+
+        .upload-error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            color: #ff6666;
+            text-align: center;
+            display: none;
+        }
+
         /* Safe area adjustments for iOS */
         @supports (padding: max(0px)) {
             .main-content {
@@ -294,7 +341,7 @@
                     <h1 class="preshow-title">Pre-Show Period</h1>
 
                     <p class="preshow-message">
-                        Welcome to Bushkar's Halloween Party! The costume contest is in pre-show mode.
+                        Welcome to Bushkar's Halloween Party! Upload your costume now.
                     </p>
 
                     <div class="party-decorations">
@@ -306,8 +353,45 @@
                         <span>🧙‍♀️</span>
                     </div>
 
+                    <!-- Upload Section -->
+                    <div class="upload-section" id="uploadSection">
+                        <div class="upload-icon">📸</div>
+                        <h3 style="color: #ffd700; font-size: 1.4em; margin-bottom: 15px; text-align: center;">Upload Your Costume</h3>
+
+                        <div id="uploadMessage" class="upload-message"></div>
+                        <div id="uploadError" class="upload-error"></div>
+
+                        <input type="file" id="photoInput" accept="image/*" style="display: none;">
+
+                        <div id="uploadPreview" style="display: none; margin-bottom: 20px; text-align: center;">
+                            <img id="previewImage" style="max-width: 100%; max-height: 300px; border-radius: 10px; margin-bottom: 15px;">
+                        </div>
+
+                        <div id="uploadForm" style="display: none;">
+                            <input type="text" id="costumeNameInput" placeholder="Your Name" required
+                                   style="width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px;
+                                          border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
+                                          color: white; font-size: 1.1em; box-sizing: border-box;">
+
+                            <textarea id="costumeDescInput" placeholder="Describe your costume (optional)" rows="3"
+                                      style="width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 10px;
+                                             border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
+                                             color: white; font-size: 1em; font-family: inherit; resize: none; box-sizing: border-box;"></textarea>
+
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="cancelUpload()" class="secondary-btn" style="flex: 1;">Cancel</button>
+                                <button onclick="submitUpload()" id="submitBtn" class="primary-btn" style="flex: 1;">Upload</button>
+                            </div>
+                        </div>
+
+                        <button id="selectPhotoBtn" onclick="document.getElementById('photoInput').click()"
+                                class="primary-btn" style="width: 100%;">
+                            📸 Select Photo
+                        </button>
+                    </div>
+
                     <div class="timing-info">
-                        <h3>📅 What's Available Now</h3>
+                        <h3>📅 What's Happening</h3>
                         <p>
                             You can upload your costume photos, but voting hasn't started yet.
                             Get your entries in early!
@@ -326,24 +410,107 @@
                             Winners will be announced at <strong>8:30 PM</strong>!
                         </p>
                     </div>
-
-                    <div class="action-buttons">
-                        <a href="/welcome" class="primary-btn">
-                            📸 Upload Your Costume
-                        </a>
-                        <a href="/admin" class="secondary-btn">
-                            🔧 Admin Panel
-                        </a>
-                        <button class="secondary-btn" onclick="checkStatus()">
-                            🔄 Check Status
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        let selectedFile = null;
+
+        // Handle file selection
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('uploadPreview').style.display = 'block';
+                    document.getElementById('uploadForm').style.display = 'block';
+                    document.getElementById('selectPhotoBtn').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function cancelUpload() {
+            selectedFile = null;
+            document.getElementById('photoInput').value = '';
+            document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('uploadForm').style.display = 'none';
+            document.getElementById('selectPhotoBtn').style.display = 'block';
+            document.getElementById('costumeNameInput').value = '';
+            document.getElementById('costumeDescInput').value = '';
+            document.getElementById('uploadMessage').style.display = 'none';
+            document.getElementById('uploadError').style.display = 'none';
+        }
+
+        async function submitUpload() {
+            const name = document.getElementById('costumeNameInput').value.trim();
+            const description = document.getElementById('costumeDescInput').value.trim();
+
+            if (!name) {
+                showError('Please enter your name');
+                return;
+            }
+
+            if (!selectedFile) {
+                showError('Please select a photo');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            const formData = new FormData();
+            formData.append('photo', selectedFile);
+            formData.append('name', name);
+            formData.append('description', description);
+            formData.append('type', 'individual');
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('✅ Costume uploaded successfully!');
+                    setTimeout(() => {
+                        cancelUpload();
+                    }, 2000);
+                } else {
+                    showError(result.error || 'Upload failed');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Upload';
+                }
+            } catch (error) {
+                showError('Upload failed: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Upload';
+            }
+        }
+
+        function showMessage(message) {
+            const msgEl = document.getElementById('uploadMessage');
+            msgEl.textContent = message;
+            msgEl.style.display = 'block';
+            document.getElementById('uploadError').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errEl = document.getElementById('uploadError');
+            errEl.textContent = message;
+            errEl.style.display = 'block';
+            document.getElementById('uploadMessage').style.display = 'none';
+        }
+
         // Countdown timer
         function updateCountdown() {
             // Default voting start time
