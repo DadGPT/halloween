@@ -896,12 +896,16 @@ app.get('/api/timing-status', async (req, res) => {
 app.post('/api/timing-settings', async (req, res) => {
     try {
         const newSettings = req.body;
+        console.log('=== Update Timing Settings Request ===');
+        console.log('Received settings:', JSON.stringify(newSettings, null, 2));
+        console.log('Current settings before update:', JSON.stringify(timingSettings, null, 2));
 
         // Validate required fields if enabled
         if (newSettings.enabled) {
             const requiredFields = ['votingStart', 'votingEnd'];
             for (const field of requiredFields) {
                 if (!newSettings[field]) {
+                    console.error(`Validation failed: Missing required field: ${field}`);
                     return res.status(400).json({ error: `Missing required field: ${field}` });
                 }
             }
@@ -911,19 +915,31 @@ app.post('/api/timing-settings', async (req, res) => {
             const votingEnd = new Date(newSettings.votingEnd + ':00Z');
 
             if (votingStart >= votingEnd) {
+                console.error('Validation failed: Voting start time must be before voting end time');
                 return res.status(400).json({ error: 'Voting start time must be before voting end time' });
             }
         }
 
         // Merge with existing settings
         const updatedSettings = { ...timingSettings, ...newSettings };
+        console.log('Merged settings:', JSON.stringify(updatedSettings, null, 2));
 
         // Save to database
+        if (!database.initialized) {
+            console.error('❌ Database not initialized! Cannot persist timing settings.');
+            return res.status(500).json({
+                error: 'Database not initialized. Timing settings cannot be persisted.',
+                details: 'Check Supabase credentials configuration'
+            });
+        }
+
         try {
+            console.log('Saving to database...');
             const savedSettings = await database.updateTimingSettings(updatedSettings);
             // Update in-memory cache
             timingSettings = savedSettings;
-            console.log('Timing settings saved to database:', timingSettings);
+            console.log('✅ Timing settings saved to database successfully');
+            console.log('Saved settings:', JSON.stringify(timingSettings, null, 2));
 
             res.json({
                 success: true,
@@ -931,20 +947,20 @@ app.post('/api/timing-settings', async (req, res) => {
                 currentPhase: getCurrentPhase()
             });
         } catch (dbError) {
-            console.error('Failed to save timing settings to database:', dbError);
-            // Still update in-memory for this session, but warn about persistence
-            timingSettings = updatedSettings;
-            res.json({
-                success: true,
-                settings: timingSettings,
-                currentPhase: getCurrentPhase(),
-                warning: 'Settings updated for this session but not persisted to database'
+            console.error('❌ Failed to save timing settings to database:', dbError);
+            console.error('Database error details:', dbError.message);
+            console.error('Database error stack:', dbError.stack);
+
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to save to database: ' + dbError.message,
+                details: dbError.toString()
             });
         }
 
     } catch (error) {
-        console.error('Update timing settings error:', error);
-        res.status(500).json({ error: 'Failed to update timing settings' });
+        console.error('❌ Update timing settings error:', error);
+        res.status(500).json({ error: 'Failed to update timing settings: ' + error.message });
     }
 });
 

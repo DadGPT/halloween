@@ -1821,6 +1821,8 @@
             const content = document.getElementById('timingCardContent');
             const toggle = document.getElementById('timingCardToggle');
 
+            console.log('[ADMIN] Toggling timing mode to:', mode);
+
             if (mode === 'enabled') {
                 settings.style.display = 'block';
                 overrides.style.display = 'block';
@@ -1842,67 +1844,87 @@
 
             // Save enabled state to database
             try {
+                console.log('[ADMIN] Saving enabled state to database:', timingSettings.enabled);
                 const response = await fetch('/api/timing-settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(timingSettings)
                 });
 
+                const result = await response.json();
+
                 if (response.ok) {
-                    console.log('Timing enabled state saved:', timingSettings.enabled);
+                    console.log('[ADMIN] ✅ Timing enabled state saved to database');
+                    showToast(`Timing ${timingSettings.enabled ? 'enabled' : 'disabled'} and saved to database`);
                 } else {
-                    console.error('Failed to save timing enabled state');
+                    console.error('[ADMIN] ❌ Failed to save timing enabled state:', result);
+                    showToast('Error: Failed to save timing enabled state');
                 }
             } catch (error) {
-                console.error('Error saving timing enabled state:', error);
+                console.error('[ADMIN] ❌ Error saving timing enabled state:', error);
+                showToast('Error saving timing state: ' + error.message);
             }
 
             updateTimingStatus();
         }
 
         async function saveTimingSettings() {
-            if (!timingSettings.enabled) return;
+            console.log('[ADMIN] Saving timing settings...');
+            console.log('[ADMIN] Current settings:', JSON.stringify(timingSettings, null, 2));
 
             // Get values from form
             timingSettings.votingStart = document.getElementById('votingStart').value;
             timingSettings.votingEnd = document.getElementById('votingEnd').value;
+
+            console.log('[ADMIN] Updated settings:', JSON.stringify(timingSettings, null, 2));
 
             // Validate times (voting start must be before voting end)
             const votingStart = new Date(timingSettings.votingStart);
             const votingEnd = new Date(timingSettings.votingEnd);
 
             if (votingStart >= votingEnd) {
+                console.error('[ADMIN] Validation error: Start time must be before end time');
                 showToast('Error: Voting start time must be before voting end time!');
                 return;
             }
 
-            // Save to server
+            // Save to server (database)
             try {
+                console.log('[ADMIN] Sending to /api/timing-settings...');
                 const response = await fetch('/api/timing-settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(timingSettings)
                 });
 
+                const result = await response.json();
+                console.log('[ADMIN] Server response:', result);
+
                 if (response.ok) {
-                    showToast('Timing settings saved successfully!');
+                    console.log('[ADMIN] ✅ Timing settings saved successfully to database');
+                    showToast('✅ Timing settings saved to database!');
                     updateTimingStatus();
                 } else {
-                    throw new Error('Failed to save timing settings');
+                    console.error('[ADMIN] ❌ Server returned error:', result);
+                    showToast('Error: ' + (result.error || 'Failed to save timing settings'));
                 }
             } catch (error) {
-                console.error('Error saving timing settings:', error);
-                showToast('Error saving timing settings');
+                console.error('[ADMIN] ❌ Error saving timing settings:', error);
+                showToast('Error saving timing settings: ' + error.message);
             }
         }
 
         // Load timing settings from API (database)
         async function loadTimingFromAPI() {
+            console.log('[ADMIN] Loading timing settings from database...');
             try {
                 const response = await fetch('/api/timing-status');
                 if (response.ok) {
                     const data = await response.json();
                     timingSettings = data.settings;
+
+                    console.log('[ADMIN] ✅ Loaded from database:', JSON.stringify(timingSettings, null, 2));
+                    console.log('[ADMIN] Current phase:', data.currentPhase);
 
                     // Update form fields
                     document.getElementById('timingMode').value = timingSettings.enabled ? 'enabled' : 'disabled';
@@ -1910,12 +1932,13 @@
                     document.getElementById('votingEnd').value = timingSettings.votingEnd;
 
                     toggleTimingSettings();
-                    console.log('Timing settings loaded from database:', timingSettings);
                 } else {
-                    console.error('Failed to load timing settings from API');
+                    console.error('[ADMIN] ❌ Failed to load timing settings from API, status:', response.status);
+                    showToast('Warning: Could not load timing settings from database');
                 }
             } catch (error) {
-                console.error('Error loading timing settings:', error);
+                console.error('[ADMIN] ❌ Error loading timing settings:', error);
+                showToast('Error loading timing settings: ' + error.message);
             }
 
             // Set initial collapsed/expanded state based on timing enabled status
