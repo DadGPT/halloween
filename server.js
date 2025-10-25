@@ -197,9 +197,38 @@ function getPhaseMessage(phase) {
 
 // Routes
 
-// Serve static HTML files
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'welcome.html'));
+// Root route - redirect to appropriate page based on timing
+app.get('/', async (req, res) => {
+    console.log('=== / (root) route accessed ===');
+
+    // Reload timing settings from database
+    if (database.initialized) {
+        try {
+            await loadTimingSettings();
+            console.log('Timing settings reloaded for root route');
+        } catch (err) {
+            console.warn('Failed to reload timing settings:', err.message);
+        }
+    }
+
+    // Check current phase and redirect accordingly
+    const currentPhase = getCurrentPhase();
+    console.log('Root route - Current phase:', currentPhase.phase);
+
+    if (currentPhase.phase === 'preshow') {
+        console.log('➡️  Redirecting to /preshow');
+        return res.redirect('/preshow');
+    } else if (currentPhase.phase === 'voting' || currentPhase.phase === 'disabled') {
+        console.log('➡️  Redirecting to /vote');
+        return res.redirect('/vote');
+    } else if (currentPhase.phase === 'closed' || currentPhase.phase === 'results') {
+        console.log('➡️  Redirecting to /voting-closed');
+        return res.redirect('/voting-closed');
+    }
+
+    // Fallback to vote page
+    console.log('➡️  Fallback: Redirecting to /vote');
+    res.redirect('/vote');
 });
 
 app.get('/welcome', (req, res) => {
