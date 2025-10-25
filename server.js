@@ -215,47 +215,25 @@ function getPhaseMessage(phase) {
 
 // Routes
 
-// Root route - serve preshow page directly (timing disabled)
+// Root route - serve index.html (currently preshow) with cache busting
 app.get('/', (req, res) => {
-    console.log('=== / (root) route accessed - serving preshow.html ===');
-    res.sendFile(path.join(__dirname, 'preshow.html'));
+    console.log('=== / (root) route accessed - serving index.html (preshow) ===');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/welcome', (req, res) => {
     res.sendFile(path.join(__dirname, 'welcome.html'));
 });
 
-app.get('/vote', async (req, res) => {
-    console.log('=== /vote route accessed ===');
-
-    // Reload timing settings from database to ensure we have latest values
-    // This is critical in serverless environments where each request may hit a different instance
-    if (database.initialized) {
-        try {
-            await loadTimingSettings();
-            console.log('Timing settings reloaded successfully');
-        } catch (err) {
-            console.warn('Failed to reload timing settings, using cached values:', err.message);
-        }
-    } else {
-        console.warn('Database not initialized - cannot reload timing settings');
-    }
-
-    // Check current phase and redirect if necessary
-    const currentPhase = getCurrentPhase();
-    console.log('Current phase determined:', currentPhase.phase);
-
-    if (currentPhase.phase === 'beforeshow' || currentPhase.phase === 'preshow') {
-        console.log('❌ Redirecting to /preshow - voting not started yet');
-        return res.redirect('/preshow');
-    } else if (currentPhase.phase === 'closed' || currentPhase.phase === 'results') {
-        console.log('❌ Redirecting to /voting-closed - voting has ended');
-        return res.redirect('/voting-closed');
-    }
-
-    // If voting is allowed or timing is disabled, show voting page
-    console.log('✅ Showing voting page - voting is active or timing is disabled');
-    res.sendFile(path.join(__dirname, 'index.html'));
+app.get('/vote', (req, res) => {
+    console.log('=== /vote route accessed - serving voting-interface.html ===');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.sendFile(path.join(__dirname, 'voting-interface.html'));
 });
 
 app.get('/admin', (req, res) => {

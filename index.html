@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Halloween Contest - Vote</title>
-    
+    <title>Pre-Show - Halloween Contest</title>
+
     <!-- Tailwind CSS for consistent mobile layouts -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <style>
         * {
             margin: 0;
@@ -18,10 +18,15 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html, body {
+            height: 100%;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: #000;
-            overflow-x: hidden;
             touch-action: manipulation;
         }
 
@@ -68,186 +73,116 @@
             }
         }
 
-        /* App Container - Flexbox Layout */
+        /* App Container */
         .app-container {
-            height: 100%;
+            min-height: 100%;
             display: flex;
             flex-direction: column;
             background: linear-gradient(180deg, #1a0033 0%, #330066 50%, #4d0099 100%);
             position: relative;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* Header - Fixed Height */
-        .header {
-            flex-shrink: 0;
-            background: rgba(26, 0, 51, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-            z-index: 50;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        /* Main Content */
+        .main-content {
             flex: 1;
-        }
-
-        .title-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px 80px 20px;
             text-align: center;
-            flex: 1;
+            min-height: 100vh;
         }
 
-        .header h1 {
-            font-size: 1.4em;
-            color: #ff6b00;
+        .preshow-card {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 40px 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 0, 0.3);
+            max-width: 100%;
+        }
+
+        .preshow-emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-15px);
+            }
+            60% {
+                transform: translateY(-7px);
+            }
+        }
+
+        .preshow-title {
+            color: #ffff00;
+            font-size: 2em;
             font-weight: 700;
-            margin-bottom: 2px;
-            text-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
-            background: linear-gradient(45deg, #ff6b00, #ff8c00, #ffa500);
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+            background: linear-gradient(45deg, #ffff00, #ffd700);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .subtitle {
-            font-size: 0.8em;
+        .preshow-message {
             color: rgba(255, 255, 255, 0.9);
-            font-weight: 600;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-        }
-
-        .menu-btn {
-            width: 44px;
-            height: 44px;
-            min-width: 44px;
-            min-height: 44px;
-            background: rgba(255, 107, 0, 0.2);
-            border: 2px solid #ff6b00;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            z-index: 1;
-        }
-
-        .menu-btn:active {
-            transform: scale(0.95);
-            background: rgba(255, 107, 0, 0.4);
-        }
-
-        .menu-btn span {
-            width: 20px;
-            height: 2px;
-            background: #ff6b00;
-            border-radius: 2px;
-            pointer-events: none;
-        }
-
-        /* Main Content - Scrollable */
-        .main-scroll {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-        }
-
-        .main-content {
-            padding: 20px 15px;
-            padding-bottom: 200px; /* Even more space for fixed button */
-        }
-
-        .welcome-card {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            padding: 20px;
+            font-size: 1.2em;
+            line-height: 1.6;
             margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 107, 0, 0.3);
         }
 
-        .welcome-card h2 {
-            color: #ff6b00;
-            font-size: 1.5em;
+        .timing-info {
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px solid rgba(255, 255, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .timing-info h3 {
+            color: #ffd700;
+            font-size: 1.3em;
             margin-bottom: 10px;
-            text-align: center;
+            font-weight: 600;
         }
 
-        .welcome-card p {
-            color: rgba(255, 255, 255, 0.9);
-            text-align: center;
+        .timing-info p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1em;
             line-height: 1.5;
+        }
+
+        .countdown-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .countdown-title {
+            color: #ffd700;
+            font-size: 1.1em;
+            font-weight: 600;
             margin-bottom: 15px;
         }
 
-        /* Add Entry Card */
-        .add-entry-card {
-            background: linear-gradient(135deg, rgba(0, 255, 0, 0.15), rgba(0, 200, 0, 0.1));
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(0, 255, 0, 0.4);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .add-entry-card:active {
-            transform: scale(0.98);
-            background: linear-gradient(135deg, rgba(0, 255, 0, 0.25), rgba(0, 200, 0, 0.15));
-        }
-
-        .add-entry-icon {
-            font-size: 2.5em;
-            flex-shrink: 0;
-        }
-
-        .add-entry-thumbnail {
-            width: 60px;
-            height: 60px;
-            flex-shrink: 0;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 2px solid #00ff00;
-        }
-
-        .add-entry-thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .add-entry-text {
-            flex: 1;
-        }
-
-        .add-entry-title {
-            color: #00ff00;
-            font-size: 1.3em;
+        .countdown-display {
+            font-size: 2em;
             font-weight: 700;
-            margin-bottom: 3px;
-        }
-
-        .add-entry-subtitle {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.9em;
+            color: #ffff00;
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
         }
 
         .party-decorations {
@@ -255,21 +190,21 @@
             justify-content: center;
             align-items: center;
             gap: 15px;
-            margin-top: 15px;
+            margin: 25px 0;
             animation: float 3s ease-in-out infinite;
         }
 
         .party-decorations span {
-            font-size: 1.2em;
+            font-size: 1.8em;
             opacity: 0.8;
             transition: all 0.3s;
-            filter: drop-shadow(0 0 5px rgba(255, 107, 0, 0.3));
+            filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.3));
         }
 
         .party-decorations span:hover {
             transform: scale(1.3);
             opacity: 1;
-            filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.6));
+            filter: drop-shadow(0 0 10px rgba(255, 255, 0, 0.6));
         }
 
         .party-decorations span:nth-child(odd) {
@@ -287,388 +222,17 @@
             50% { transform: translateY(-5px); }
         }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-
-        /* Category Buttons */
-        .categories-grid {
+        .action-buttons {
             display: flex;
             flex-direction: column;
             gap: 15px;
+            margin-top: 20px;
         }
 
-        .category-btn {
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            padding: 20px;
-            border: 3px solid #ff6b00;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            display: block;
-            width: 100%;
-            text-align: left;
-        }
-
-        .category-btn.pending {
-            background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), rgba(255, 140, 0, 0.1));
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        .category-btn.voted {
-            background: linear-gradient(135deg, rgba(0, 255, 0, 0.2), rgba(0, 200, 0, 0.1));
-            border-color: #00ff00;
-        }
-
-        .category-btn:active {
-            transform: scale(0.98);
-        }
-
-        .category-content {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            pointer-events: none;
-        }
-
-        .category-icon {
-            font-size: 2.5em;
-            flex-shrink: 0;
-        }
-
-        .category-info {
-            flex: 1;
-        }
-
-        .category-name {
-            color: #ff8c00;
-            font-size: 1.2em;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .category-status {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9em;
-        }
-
-        .category-btn.voted .category-status {
-            color: #00ff00;
-        }
-
-        .vote-preview {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            pointer-events: none;
-        }
-
-        .category-btn.voted .vote-preview {
-            display: flex;
-        }
-
-        .vote-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.3);
-            font-size: 1.5em;
-            flex-shrink: 0;
-        }
-
-        .vote-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .vote-name {
-            flex: 1;
-            color: #fff;
-            font-weight: 500;
-        }
-
-        .edit-btn {
-            width: 44px;
-            height: 44px;
-            min-width: 44px;
-            min-height: 44px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            pointer-events: auto;
-            position: relative;
-            z-index: 2;
-        }
-
-        .edit-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Side Menu */
-        .side-menu {
-            position: absolute;
-            top: 0;
-            right: -100%;
-            width: 75%;
-            max-width: 300px;
-            height: 100%;
-            background: rgba(26, 0, 51, 0.98);
-            backdrop-filter: blur(20px);
-            z-index: 200;
-            transition: right 0.3s ease;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-        }
-
-        .side-menu.active {
-            right: 0;
-        }
-
-        .menu-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 107, 0, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .menu-title {
-            color: #ff6b00;
-            font-size: 1.2em;
-            font-weight: 600;
-        }
-
-        .close-menu {
-            width: 44px;
-            height: 44px;
-            background: transparent;
-            border: 2px solid #ff6b00;
-            border-radius: 50%;
-            color: #ff6b00;
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .menu-items {
-            padding: 20px;
-        }
-
-        .menu-item {
-            display: block;
-            padding: 15px;
-            margin-bottom: 10px;
-            background: rgba(255, 107, 0, 0.1);
-            border: 1px solid rgba(255, 107, 0, 0.3);
-            border-radius: 10px;
-            color: #fff;
-            text-decoration: none;
-            font-size: 1.1em;
-            transition: all 0.3s;
-            min-height: 44px;
-        }
-
-        .menu-item:active {
-            background: rgba(255, 107, 0, 0.3);
-            transform: scale(0.98);
-        }
-
-        .menu-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 199;
-            display: none;
-        }
-
-        .menu-overlay.active {
-            display: block;
-        }
-
-        /* Voting Overlay */
-        .voting-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(180deg, #1a0033 0%, #330066 50%, #4d0099 100%);
-            z-index: 300;
-            display: none;
-            flex-direction: column;
-        }
-
-        .voting-overlay.active {
-            display: flex;
-        }
-
-        @media (min-width: 768px) {
-            .voting-overlay {
-                border-radius: 40px;
-                overflow: hidden;
-            }
-        }
-
-        .overlay-header {
-            flex-shrink: 0;
-            background: rgba(26, 0, 51, 0.98);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-        }
-
-        .back-btn {
-            width: 44px;
-            height: 44px;
-            min-width: 44px;
-            min-height: 44px;
-            background: rgba(255, 107, 0, 0.2);
-            border: 2px solid #ff6b00;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #ff6b00;
-            font-size: 1.5em;
-        }
-
-        .back-btn:active {
-            transform: scale(0.95);
-        }
-
-        .overlay-title {
-            flex: 1;
-            color: #ff6b00;
-            font-size: 1.3em;
-            font-weight: 600;
-        }
-
-        .voting-scroll {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .voting-grid {
-            padding: 20px 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .vote-option {
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            padding: 20px;
-            border: 3px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            min-height: 44px;
-        }
-
-        .vote-option:active {
-            transform: scale(0.98);
-        }
-
-        .vote-option.selected {
-            border-color: #00ff00;
-            background: rgba(0, 255, 0, 0.1);
-        }
-
-        .vote-option-avatar {
-            font-size: 4em;
-            margin-bottom: 15px;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .vote-option-avatar img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 15px;
-            border: 2px solid #ff6b00;
-        }
-
-        .vote-option-name {
-            color: #ff8c00;
-            font-size: 1.2em;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .vote-option-type {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9em;
-        }
-
-        /* Bottom Buttons Container - Fixed at Bottom */
-        .bottom-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 15px;
-            background: linear-gradient(to top, rgba(26, 0, 51, 1), rgba(26, 0, 51, 0.95));
-            backdrop-filter: blur(10px);
-            z-index: 100;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .bottom-container.show {
-            transform: translateY(0);
-        }
-
-        @media (min-width: 768px) {
-            .bottom-container {
-                left: auto;
-                right: auto;
-                width: 390px;
-                border-radius: 0 0 40px 40px;
-            }
-        }
-
-        .button-row {
-            display: flex;
-            gap: 10px;
-        }
-
-        .lock-btn, .reset-btn {
-            flex: 1;
-            padding: 18px;
+        .primary-btn {
+            background: linear-gradient(135deg, #ffd700, #ffff00);
+            color: #000;
+            padding: 18px 25px;
             border: none;
             border-radius: 15px;
             font-size: 1.1em;
@@ -676,301 +240,8 @@
             cursor: pointer;
             transition: all 0.3s;
             text-transform: uppercase;
-            min-height: 56px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .lock-btn {
-            background: linear-gradient(135deg, #00ff00, #00cc00);
-            color: #000;
-            box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
-        }
-
-        .reset-btn {
-            background: linear-gradient(135deg, #ff6b00, #ff8c00);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
-        }
-
-        .lock-btn:active, .reset-btn:active {
-            transform: scale(0.98);
-        }
-
-        .lock-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: absolute;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(0, 0, 0, 0.9);
-            color: #fff;
-            padding: 15px 25px;
-            border-radius: 30px;
-            border: 2px solid #ff6b00;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 600;
-            max-width: 80%;
-            text-align: center;
-            pointer-events: none;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .empty-state-icon {
-            font-size: 4em;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-
-        /* Safe area adjustments for iOS */
-        @supports (padding: max(0px)) {
-            .header {
-                padding-top: max(15px, env(safe-area-inset-top));
-            }
-            
-            .bottom-container {
-                padding-bottom: max(15px, env(safe-area-inset-bottom));
-            }
-        }
-
-        /* Custom Confirmation Modal */
-        .confirm-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 11000;
-            padding: 20px;
-        }
-
-        .confirm-modal-overlay.active {
-            display: flex;
-        }
-
-        .confirm-modal {
-            background: linear-gradient(135deg, rgba(30, 0, 50, 0.95), rgba(10, 0, 30, 0.95));
-            border: 3px solid #ff6b00;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 10px 50px rgba(255, 107, 0, 0.3);
-            animation: modalSlideIn 0.3s ease-out;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .confirm-modal-icon {
-            font-size: 4em;
-            margin-bottom: 15px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .confirm-modal-title {
-            color: #ff6b00;
-            font-size: 1.5em;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        .confirm-modal-message {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1em;
-            line-height: 1.5;
-            margin-bottom: 25px;
-        }
-
-        .confirm-modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .confirm-modal-btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .confirm-modal-cancel {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .confirm-modal-cancel:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .confirm-modal-confirm {
-            background: linear-gradient(135deg, #ff6b00, #ff8c00);
-            color: white;
-            border: 2px solid #ff6b00;
-        }
-
-        .confirm-modal-confirm:active {
-            transform: scale(0.95);
-            background: linear-gradient(135deg, #ff8c00, #ff6b00);
-        }
-
-        /* About Modal */
-        .about-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 11000;
-            padding: 20px;
-        }
-
-        .about-modal-overlay.active {
-            display: flex;
-        }
-
-        .about-modal {
-            background: linear-gradient(135deg, rgba(30, 0, 50, 0.95), rgba(10, 0, 30, 0.95));
-            border: 3px solid #ff6b00;
-            border-radius: 20px;
-            padding: 0;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 10px 50px rgba(255, 107, 0, 0.3);
-            animation: modalSlideIn 0.3s ease-out;
-            overflow: hidden;
-        }
-
-        .about-modal-header {
-            background: rgba(255, 107, 0, 0.2);
-            padding: 20px;
-            border-bottom: 2px solid rgba(255, 107, 0, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .about-modal-header h2 {
-            color: #ff6b00;
-            font-size: 1.5em;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .close-about {
-            width: 40px;
-            height: 40px;
-            background: transparent;
-            border: 2px solid #ff6b00;
-            border-radius: 50%;
-            color: #ff6b00;
-            font-size: 1.5em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .close-about:active {
-            transform: scale(0.95);
-            background: rgba(255, 107, 0, 0.2);
-        }
-
-        .about-modal-content {
-            padding: 30px;
-            color: rgba(255, 255, 255, 0.9);
-            line-height: 1.6;
-        }
-
-        .about-modal-content p {
-            margin-bottom: 15px;
-            font-size: 1em;
-        }
-
-        .thumbs-up-container {
-            margin-top: 30px;
-            text-align: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            border: 2px solid rgba(255, 107, 0, 0.2);
-        }
-
-        .thumbs-up-icon {
-            font-size: 3em;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-block;
-            user-select: none;
-        }
-
-        .thumbs-up-icon:active {
-            transform: scale(1.2);
-        }
-
-        /* Directions Button */
-        .directions-btn {
-            width: 100%;
-            padding: 20px;
-            margin-top: 20px;
-            background: linear-gradient(135deg, #00ff00, #00cc00);
-            border: none;
-            border-radius: 15px;
-            color: #000;
-            font-size: 1.2em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(255, 255, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -978,231 +249,171 @@
             text-decoration: none;
         }
 
-        .directions-btn:active {
+        .primary-btn:active {
             transform: scale(0.98);
-            background: linear-gradient(135deg, #00cc00, #00aa00);
         }
 
-        .address-text {
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(255, 107, 0, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.9);
-            text-align: center;
-            font-size: 1.1em;
-            line-height: 1.6;
+            padding: 15px 25px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .address-text strong {
-            color: #ff6b00;
-            display: block;
-            margin-bottom: 5px;
+        .secondary-btn:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-section {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+        }
+
+        .upload-message {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            color: #00ff00;
+            text-align: center;
+            display: none;
+        }
+
+        .upload-error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            color: #ff6666;
+            text-align: center;
+            display: none;
+        }
+
+        /* Safe area adjustments for iOS */
+        @supports (padding: max(0px)) {
+            .main-content {
+                padding-top: max(40px, env(safe-area-inset-top));
+                padding-bottom: max(40px, env(safe-area-inset-bottom));
+            }
         }
     </style>
 </head>
 <body>
     <div class="mobile-frame">
         <div class="app-container">
-            <!-- Fixed Header -->
-            <div class="header">
-                <div class="header-content">
-                    <div class="header-title">
-                        <span style="font-size: 1.5em;">🎃</span>
-                        <div class="title-section">
-                            <h1>Bushkar's Halloween Party</h1>
-                            <div class="subtitle">🗳️ Cast Your Votes! 🗳️</div>
+            <div class="main-content">
+                <div class="preshow-card">
+                    <div class="preshow-emoji">🎭</div>
+
+                    <h1 class="preshow-title">Pre-Show Period</h1>
+
+                    <p class="preshow-message">
+                        Welcome to Bushkar's Halloween Party! Upload your costume now.
+                    </p>
+
+                    <div class="party-decorations">
+                        <span>🎃</span>
+                        <span>👻</span>
+                        <span>🦇</span>
+                        <span>🕷️</span>
+                        <span>🔮</span>
+                        <span>🧙‍♀️</span>
+                    </div>
+
+                    <!-- Upload Section -->
+                    <div class="upload-section" id="uploadSection">
+                        <div class="upload-icon">📸</div>
+                        <h3 style="color: #ffd700; font-size: 1.4em; margin-bottom: 15px; text-align: center;">Upload Your Costume</h3>
+
+                        <div id="uploadMessage" class="upload-message"></div>
+                        <div id="uploadError" class="upload-error"></div>
+
+                        <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;">
+
+                        <div id="uploadPreview" style="display: none; margin-bottom: 20px; text-align: center;">
+                            <img id="previewImage" style="max-width: 100%; max-height: 300px; border-radius: 10px; margin-bottom: 15px;">
                         </div>
-                        <span style="font-size: 1.5em;">👻</span>
-                    </div>
-                    <div class="menu-btn" onclick="toggleMenu()">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Scrollable Main Content -->
-            <div class="main-scroll">
-                <div class="main-content">
-                    <div class="welcome-card">
-                        <h2>🎭 Vote for the Best Costumes! 🎭</h2>
-                        <p>Select each category below to cast your vote for the most amazing costumes at Bushkar's Halloween Party!</p>
-                        <div class="party-decorations">
-                            <span>🕸️</span>
-                            <span>🦇</span>
-                            <span>⚡</span>
-                            <span>🕷️</span>
-                            <span>🔮</span>
-                            <span>⚰️</span>
-                            <span>🧙‍♀️</span>
+                        <div id="uploadForm" style="display: none;">
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: #ffd700; font-weight: 600; margin-bottom: 8px; display: block; text-align: left;">Your Name / Team Name</label>
+                                <input type="text" id="costumeNameInput" placeholder="e.g., The Addams Family" required
+                                       style="width: 100%; padding: 15px; border-radius: 10px;
+                                              border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
+                                              color: white; font-size: 1em; box-sizing: border-box;">
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <label style="color: #ffd700; font-weight: 600; margin-bottom: 8px; display: block; text-align: left;">Entry Type</label>
+                                <select id="costumeTypeInput"
+                                        style="width: 100%; padding: 15px; border-radius: 10px;
+                                               border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
+                                               color: white; font-size: 1em; box-sizing: border-box;">
+                                    <option value="individual">Individual</option>
+                                    <option value="couple">Couple/Group</option>
+                                </select>
+                            </div>
+
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="cancelUpload()" class="secondary-btn" style="flex: 1;">Cancel</button>
+                                <button onclick="submitUpload()" id="submitBtn" class="primary-btn" style="flex: 1;">Submit Entry 🎃</button>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Add Entry Card -->
-                    <div class="add-entry-card" onclick="openAddEntryOverlay()">
-                        <div class="add-entry-icon" id="addEntryIcon">➕</div>
-                        <div class="add-entry-thumbnail" id="addEntryThumbnail" style="display: none;">
-                            <img id="addEntryThumbnailImg" alt="Your costume">
-                        </div>
-                        <div class="add-entry-text">
-                            <div class="add-entry-title">Add Your Costume Entry</div>
-                            <div class="add-entry-subtitle">Join the contest!</div>
-                        </div>
-                    </div>
-
-                    <!-- Categories Grid -->
-                    <div class="categories-grid" id="categoriesGrid"></div>
-                </div>
-            </div>
-
-            <!-- Fixed Bottom Buttons -->
-            <div class="bottom-container" id="bottomContainer">
-                <div class="button-row">
-                    <button class="reset-btn" onclick="resetVotesBottom()">🔄 Reset</button>
-                    <button class="lock-btn" onclick="lockVotes()">🔒 Lock In</button>
-                </div>
-            </div>
-        </div>
-
-            <!-- Side Menu -->
-            <div class="side-menu" id="sideMenu">
-            <div class="menu-header">
-                <div class="menu-title">Menu</div>
-                <div class="close-menu" onclick="toggleMenu()">×</div>
-            </div>
-            <div class="menu-items">
-                <a href="#" class="menu-item" onclick="showGame(); return false;">🎮 The Game: Haunted House Hunters</a>
-                <a href="/karaoke" class="menu-item">🎤 Karaoke Royale</a>
-                <a href="#" class="menu-item" onclick="showDirections(); return false;">🗺️ Directions</a>
-                <a href="#" class="menu-item" onclick="resetVotes(); return false;">🔄 Reset My Votes</a>
-                <a href="#" class="menu-item" onclick="showAbout(); return false;">ℹ️ About</a>
-            </div>
-            </div>
-            <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-
-            <!-- Voting Overlay -->
-            <div class="voting-overlay" id="votingOverlay">
-            <div class="overlay-header">
-                <div class="back-btn" onclick="closeVotingOverlay()">‹</div>
-                <div class="overlay-title" id="overlayTitle">Select Your Vote</div>
-            </div>
-            <div class="voting-scroll">
-                <div class="voting-grid" id="votingGrid"></div>
-            </div>
-            </div>
-
-            <!-- Add Entry Overlay -->
-            <div class="voting-overlay" id="addEntryOverlay">
-            <div class="overlay-header">
-                <div class="back-btn" onclick="closeAddEntryOverlay()">‹</div>
-                <div class="overlay-title">Add Your Costume Entry</div>
-            </div>
-            <div class="voting-scroll">
-                <div style="padding: 20px 15px;">
-                    <div class="form-group">
-                        <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;">Your Name / Team Name</label>
-                        <input type="text" id="newEntryName" placeholder="e.g., The Addams Family" style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 107, 0, 0.3); background: rgba(255, 255, 255, 0.05); color: white; font-size: 1em;">
-                    </div>
-
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;">Entry Type</label>
-                        <select id="newEntryType" style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 107, 0, 0.3); background: rgba(255, 255, 255, 0.05); color: white; font-size: 1em;">
-                            <option value="individual">Individual</option>
-                            <option value="couple">Couple/Group</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;" id="photoLabel">Take a Photo</label>
-                        <input type="file" id="newEntryPhoto" accept="image/*" capture="environment" style="display: none;" onchange="handleNewEntryPhoto(event)">
-                        <label for="newEntryPhoto" style="display: block; padding: 40px; border: 3px dashed rgba(255, 107, 0, 0.5); border-radius: 12px; text-align: center; cursor: pointer; background: rgba(0, 0, 0, 0.3);">
-                            <div style="font-size: 3em; margin-bottom: 10px;">📸</div>
-                            <div style="color: rgba(255, 255, 255, 0.7);" id="photoPrompt">Tap to take photo</div>
-                        </label>
-                        <div id="newEntryPhotoPreview" style="display: none; margin-top: 15px; text-align: center;">
-                            <img id="newEntryPhotoImg" style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px; border: 3px solid #ff6b00;">
-                        </div>
-                    </div>
-
-                    <button onclick="submitNewEntry()" id="submitEntryBtn" style="width: 100%; margin-top: 25px; padding: 18px; border: none; border-radius: 15px; background: linear-gradient(135deg, #00ff00, #00cc00); color: #000; font-size: 1.1em; font-weight: 700; cursor: pointer; text-transform: uppercase;">
-                        Submit Entry 🎃
-                    </button>
-                </div>
-            </div>
-            </div>
-
-            <!-- Toast -->
-            <div class="toast" id="toast"></div>
-
-            <!-- Custom Confirmation Modal -->
-            <div class="confirm-modal-overlay" id="confirmModalOverlay">
-                <div class="confirm-modal">
-                    <div class="confirm-modal-icon">⚠️</div>
-                    <div class="confirm-modal-title" id="confirmModalTitle">Confirm Action</div>
-                    <div class="confirm-modal-message" id="confirmModalMessage">Are you sure?</div>
-                    <div class="confirm-modal-buttons">
-                        <button class="confirm-modal-btn confirm-modal-cancel" id="confirmModalCancel">Cancel</button>
-                        <button class="confirm-modal-btn confirm-modal-confirm" id="confirmModalConfirm">Confirm</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- About Modal -->
-            <div class="about-modal-overlay" id="aboutModalOverlay">
-                <div class="about-modal">
-                    <div class="about-modal-header">
-                        <h2>About</h2>
-                        <button class="close-about" onclick="closeAboutModal()">×</button>
-                    </div>
-                    <div class="about-modal-content">
-                        <p>This app was created as a prototype for future productization by <strong>Non-Fiction</strong>.</p>
-                        <p>If you own or work for a company that needs AI services, consulting, app development, or other related marketing services, please talk to Jesse or Jessica.</p>
-                        <div class="thumbs-up-container">
-                            <div class="thumbs-up-icon" id="thumbsUpIcon" onclick="handleThumbsUpTap()">👍</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Directions Modal -->
-            <div class="about-modal-overlay" id="directionsModalOverlay">
-                <div class="about-modal">
-                    <div class="about-modal-header">
-                        <h2>🗺️ Directions</h2>
-                        <button class="close-about" onclick="closeDirectionsModal()">×</button>
-                    </div>
-                    <div class="about-modal-content">
-                        <div class="address-text">
-                            <strong>Party Location:</strong>
-                            20 Clarendon Road<br>
-                            Savannah, GA 31410
-                        </div>
-                        <button class="directions-btn" onclick="openDirections()">
-                            <span>📍</span>
-                            <span>Get Directions</span>
+                        <button id="selectPhotoBtn" onclick="document.getElementById('photoInput').click()"
+                                class="primary-btn" style="width: 100%;">
+                            📸 Take Photo
                         </button>
                     </div>
-                </div>
-            </div>
 
-            <!-- Game Modal -->
-            <div class="about-modal-overlay" id="gameModalOverlay">
-                <div class="about-modal">
-                    <div class="about-modal-header">
-                        <h2>🎮 Haunted House Hunters</h2>
-                        <button class="close-about" onclick="closeGameModal()">×</button>
+                    <div class="timing-info">
+                        <h3>📅 What's Happening</h3>
+                        <p>
+                            Voting starts at <strong>7:30 PM</strong>. Upload your costume before then!
+                        </p>
                     </div>
-                    <div class="about-modal-content">
-                        <p>Welcome to <strong>Haunted House Hunters</strong>, the augmented reality game Jesse made for their yard decorations!</p>
-                        <p>This is an exciting AR race to capture ghosts that are haunting the house. Use your phone's camera to find and catch the spooky spirits hiding around the property.</p>
-                        <p>Ready to start your ghost hunting adventure?</p>
-                        <button class="directions-btn" onclick="launchGame()">
-                            <span>👻</span>
-                            <span>Launch Game</span>
-                        </button>
+
+                    <!-- Countdown removed - timing disabled -->
+
+                    <div class="timing-info">
+                        <h3>🗳️ Coming Up Next</h3>
+                        <p>
+                            Voting begins at <strong>7:30 PM</strong>.
+                            Winners will be announced later tonight!
+                        </p>
                     </div>
                 </div>
             </div>
@@ -1210,33 +421,9 @@
     </div>
 
     <script>
-        // Data
-        let entries = [];
-        let votes = {
-            couple: null,
-            funny: null,
-            scary: null,
-            overall: null
-        };
-        let currentCategory = null;
+        let selectedFile = null;
+        let timingSettings = null;
         let voterId = null;
-        let myEntry = null; // Track user's self-submitted entry // Unique voter ID
-
-        // Secret key sequence
-        let keySequence = '';
-        let secretTrigger = 'ttttt';
-
-        // Thumbs up tap counter for hidden admin access
-        let thumbsUpTaps = 0;
-        let thumbsUpTimeout = null;
-
-        // Categories configuration
-        const categories = [
-            { id: 'couple', name: 'Best Couple', emoji: '💑', filter: e => e.type === 'couple' },
-            { id: 'funny', name: 'Funniest', emoji: '😂', filter: e => true },
-            { id: 'scary', name: 'Scariest', emoji: '👻', filter: e => true },
-            { id: 'overall', name: 'Best Overall', emoji: '🏆', filter: e => true }
-        ];
 
         // Get or create voter ID
         function getVoterId() {
@@ -1249,872 +436,162 @@
             return id;
         }
 
-        // Load user's own entry (if they've submitted one)
-        async function loadMyEntry() {
+        // Load timing settings from server
+        async function loadTimingSettings() {
             try {
-                const response = await fetch(`/api/my-entry/${voterId}`);
+                const response = await fetch('/api/timing-status');
                 if (response.ok) {
                     const data = await response.json();
-                    myEntry = data.entry;
-                    updateAddEntryCard();
-                    console.log('My entry:', myEntry);
-                }
-            } catch (error) {
-                console.error('Error loading my entry:', error);
-            }
-        }
-
-        // Update the "Add Entry" card based on whether user has an entry
-        function updateAddEntryCard() {
-            const card = document.querySelector('.add-entry-card');
-            if (!card) return;
-
-            const title = card.querySelector('.add-entry-title');
-            const subtitle = card.querySelector('.add-entry-subtitle');
-            const icon = document.getElementById('addEntryIcon');
-            const thumbnail = document.getElementById('addEntryThumbnail');
-            const thumbnailImg = document.getElementById('addEntryThumbnailImg');
-
-            if (myEntry) {
-                title.textContent = 'Edit Your Costume Entry';
-                subtitle.textContent = `${myEntry.name}`;
-
-                // Show thumbnail instead of + icon
-                icon.style.display = 'none';
-                thumbnail.style.display = 'block';
-                thumbnailImg.src = myEntry.cloud_url || myEntry.image_url || myEntry.image;
-            } else {
-                title.textContent = 'Add Your Costume Entry';
-                subtitle.textContent = 'Join the contest!';
-
-                // Show + icon
-                icon.style.display = 'block';
-                thumbnail.style.display = 'none';
-            }
-        }
-
-        // Initialize
-        async function init() {
-            voterId = getVoterId();
-            await loadEntries();
-            await loadVotes();
-            await loadMyEntry();
-            renderCategories();
-            updateLockButton();
-
-            // Set up periodic vote sync (every 60 seconds / 1 minute)
-            // This ensures the UI updates if an admin resets votes
-            setInterval(syncVotesWithServer, 60000);
-        }
-
-        // Sync votes with server to detect if admin has reset them
-        async function syncVotesWithServer() {
-            try {
-                const response = await fetch(`/api/voter-votes/${voterId}`);
-                if (response.ok) {
-                    const data = await response.json();
-
-                    // Convert server votes to local format
-                    const serverVotes = {
-                        couple: null,
-                        funny: null,
-                        scary: null,
-                        overall: null
-                    };
-                    data.votes.forEach(vote => {
-                        serverVotes[vote.category] = vote.entry_id;
-                    });
-
-                    // Check if any votes were removed (exist locally but not on server)
-                    let votesChanged = false;
-                    for (const category in votes) {
-                        if (votes[category] !== null && serverVotes[category] === null) {
-                            // Vote was removed by admin
-                            votes[category] = null;
-                            votesChanged = true;
-                        }
-                    }
-
-                    // Update UI if votes were changed
-                    if (votesChanged) {
-                        console.log('Votes were reset by admin - updating UI');
-                        renderCategories();
-                        updateLockButton();
-                        // Optionally show a toast notification
-                        // showToast('Your votes were reset by an admin');
-                    }
-                }
-            } catch (error) {
-                console.error('Error syncing votes with server:', error);
-                // Don't show error to user - this is a background operation
-            }
-        }
-
-        // Load entries from API
-        async function loadEntries() {
-            try {
-                const response = await fetch('/api/entries');
-                if (response.ok) {
-                    entries = await response.json();
+                    timingSettings = data.settings;
+                    console.log('[PRESHOW] Timing settings loaded:', timingSettings);
                 } else {
-                    console.error('Failed to load entries from API');
-                    // Fallback to localStorage or sample data
-                    loadEntriesFromLocalStorage();
+                    console.error('[PRESHOW] Failed to load timing settings');
                 }
             } catch (error) {
-                console.error('Error loading entries:', error);
-                // Fallback to localStorage or sample data
-                loadEntriesFromLocalStorage();
+                console.error('[PRESHOW] Error loading timing settings:', error);
             }
         }
 
-        // Fallback function for loading entries from localStorage
-        function loadEntriesFromLocalStorage() {
-            const saved = localStorage.getItem('halloweenEntries');
-            if (saved) {
-                entries = JSON.parse(saved);
-            } else {
-                // Load sample entries if none exist
-                entries = [
-                    { id: 1, name: "Vampire Duo", type: "couple", emoji: "🧛‍♂️", avatarType: "emoji", avatar: "🧛‍♂️", votes: { couple: 0, funny: 0, scary: 0, overall: 0 } },
-                    { id: 2, name: "Zombie Squad", type: "couple", emoji: "🧟‍♀️", avatarType: "emoji", avatar: "🧟‍♀️", votes: { couple: 0, funny: 0, scary: 0, overall: 0 } },
-                    { id: 3, name: "Ghost Twins", type: "couple", emoji: "👻", avatarType: "emoji", avatar: "👻", votes: { couple: 0, funny: 0, scary: 0, overall: 0 } },
-                    { id: 4, name: "Clown Prince", type: "individual", emoji: "🤡", avatarType: "emoji", avatar: "🤡", votes: { couple: 0, funny: 0, scary: 0, overall: 0 } },
-                    { id: 5, name: "Witch Doctor", type: "individual", emoji: "🧙‍♀️", avatarType: "emoji", avatar: "🧙‍♀️", votes: { couple: 0, funny: 0, scary: 0, overall: 0 } },
-                    { id: 6, name: "Pumpkin King", type: "individual", emoji: "🎃", avatarType: "emoji", avatar: "🎃", votes: { couple: 0, funny: 0, scary: 0, overall: 0 } }
-                ];
-            }
-        }
-
-        // Load votes from session
-        // Load votes from API
-        async function loadVotes() {
-            try {
-                const response = await fetch(`/api/voter-votes/${voterId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    // Convert array of vote objects to votes object
-                    votes = {
-                        couple: null,
-                        funny: null,
-                        scary: null,
-                        overall: null
-                    };
-                    data.votes.forEach(vote => {
-                        votes[vote.category] = vote.entry_id;
-                    });
-                    console.log('Loaded votes from API:', votes);
-                } else {
-                    console.error('Failed to load votes from API');
-                }
-            } catch (error) {
-                console.error('Error loading votes:', error);
-            }
-        }
-
-        // Render category buttons
-        function renderCategories() {
-            const grid = document.getElementById('categoriesGrid');
-            grid.innerHTML = '';
-
-            categories.forEach(category => {
-                const hasVote = votes[category.id] !== null;
-                const votedEntry = hasVote ? entries.find(e => e.id === votes[category.id]) : null;
-                
-                const button = document.createElement('div');
-                button.className = `category-btn ${hasVote ? 'voted' : 'pending'}`;
-                button.onclick = () => openVotingOverlay(category);
-                
-                button.innerHTML = `
-                    <div class="category-content">
-                        <div class="category-icon">${category.emoji}</div>
-                        <div class="category-info">
-                            <div class="category-name">${category.name}</div>
-                            <div class="category-status">
-                                ${hasVote ? '✓ Vote Cast' : '⚠️ Vote Required'}
-                            </div>
-                        </div>
-                    </div>
-                    ${hasVote && votedEntry ? `
-                        <div class="vote-preview">
-                            <div class="vote-avatar">
-                                <img src="${votedEntry.cloud_url || votedEntry.image_url || votedEntry.image}" alt="${votedEntry.name}">
-                            </div>
-                            <div class="vote-name">${votedEntry.name}</div>
-                            <button class="edit-btn" type="button" onclick="handleEdit(event, '${category.id}', '${category.name}', '${category.emoji}')">✎</button>
-                        </div>
-                    ` : ''}
-                `;
-                
-                grid.appendChild(button);
-            });
-        }
-
-        // Check if an entry has already been voted for in another category
-        function hasVotedForEntryInOtherCategory(entryId, currentCategoryId) {
-            for (const category in votes) {
-                if (category !== currentCategoryId && votes[category] === entryId) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // Open voting overlay
-        async function openVotingOverlay(category) {
-            currentCategory = category;
-            const overlay = document.getElementById('votingOverlay');
-            const title = document.getElementById('overlayTitle');
-            const grid = document.getElementById('votingGrid');
-
-            // Show loading state
-            title.textContent = `${category.emoji} ${category.name}`;
-            grid.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">⏳</div>
-                    <div style="margin-top: 10px;">Loading entries...</div>
-                </div>
-            `;
-            overlay.classList.add('active');
-
-            // Reload entries from server to get latest submissions
-            await loadEntries();
-
-            // Filter by category type (couple vs all)
-            let filteredEntries = entries.filter(category.filter);
-
-            // Further filter out entries already voted for in other categories
-            // BUT keep the current vote for this category if it exists
-            filteredEntries = filteredEntries.filter(entry => {
-                // Always show if it's the current vote for this category
-                if (votes[category.id] === entry.id) {
-                    return true;
-                }
-                // Hide if already voted for in another category
-                return !hasVotedForEntryInOtherCategory(entry.id, category.id);
-            });
-
-            if (filteredEntries.length === 0) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🎭</div>
-                        <div style="margin-top: 10px;">All available entries have been voted for in other categories!</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; color: rgba(255, 255, 255, 0.6);">Each costume can only be voted for once.</div>
-                    </div>
-                `;
-            } else {
-                grid.innerHTML = filteredEntries.map(entry => `
-                    <div class="vote-option ${votes[category.id] === entry.id ? 'selected' : ''}"
-                         onclick="selectVote(${entry.id})">
-                        <div class="vote-option-avatar">
-                            <img src="${entry.cloud_url || entry.image_url || entry.image}" alt="${entry.name}">
-                        </div>
-                        <div class="vote-option-name">${entry.name}</div>
-                        <div class="vote-option-type">${entry.type === 'couple' ? 'Couple/Group' : 'Individual'}</div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // Close voting overlay
-        function closeVotingOverlay() {
-            document.getElementById('votingOverlay').classList.remove('active');
-            currentCategory = null;
-        }
-
-        // Select vote
-        async function selectVote(entryId) {
-            if (!currentCategory) return;
-
-            try {
-                // Check if removing vote or adding/changing vote
-                if (votes[currentCategory.id] === entryId) {
-                    // Remove vote
-                    const response = await fetch(`/api/voter-vote/${voterId}/${currentCategory.id}`, {
-                        method: 'DELETE'
-                    });
-
-                    if (response.ok) {
-                        votes[currentCategory.id] = null;
-                        showToast('Vote removed');
-                        // Reopen overlay to show newly available entries
-                        openVotingOverlay(currentCategory);
-                    } else {
-                        const error = await response.json();
-                        showToast('Failed to remove vote: ' + error.error);
-                        return;
-                    }
-                } else {
-                    // Check if this entry is already voted for in another category
-                    if (hasVotedForEntryInOtherCategory(entryId, currentCategory.id)) {
-                        showToast('You already voted for this costume in another category!');
-                        return;
-                    }
-
-                    // Add or change vote
-                    const response = await fetch('/api/submit-vote', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            voterId: voterId,
-                            entryId: entryId,
-                            category: currentCategory.id
-                        })
-                    });
-
-                    if (response.ok) {
-                        votes[currentCategory.id] = entryId;
-                        showToast('Vote submitted!');
-                    } else {
-                        const error = await response.json();
-                        showToast('Failed to submit vote: ' + error.error);
-                        return;
-                    }
-                }
-
-                renderCategories();
-                updateLockButton();
-
-                // Update overlay
-                const options = document.querySelectorAll('.vote-option');
-                options.forEach(option => {
-                    const name = option.querySelector('.vote-option-name').textContent;
-                    const entry = entries.find(e => e.name === name);
-                    if (entry) {
-                        option.classList.toggle('selected', entry.id === votes[currentCategory.id]);
-                    }
-                });
-
-                // Auto-close after selection
-                setTimeout(() => {
-                    closeVotingOverlay();
-                }, 500);
-            } catch (error) {
-                console.error('Error submitting vote:', error);
-                showToast('An error occurred. Please try again.');
-            }
-        }
-
-        // Update bottom buttons visibility
-        function updateLockButton() {
-            const container = document.getElementById('bottomContainer');
-            const hasAnyVotes = Object.values(votes).some(v => v !== null);
-            const allVoted = categories.every(cat => votes[cat.id] !== null);
-            
-            // Show buttons if any votes are cast
-            if (hasAnyVotes) {
-                container.classList.add('show');
-            } else {
-                container.classList.remove('show');
-            }
-            
-            // Enable/disable lock button based on all votes
-            const lockBtn = container.querySelector('.lock-btn');
-            if (lockBtn) {
-                lockBtn.disabled = !allVoted;
-                lockBtn.style.opacity = allVoted ? '1' : '0.5';
-            }
-        }
-
-        // Handle edit button click
-        function handleEdit(event, categoryId, categoryName, categoryEmoji) {
-            event.stopPropagation();
-            event.preventDefault();
-            const category = {
-                id: categoryId,
-                name: categoryName,
-                emoji: categoryEmoji,
-                filter: categories.find(c => c.id === categoryId).filter
-            };
-            openVotingOverlay(category);
-        }
-
-        // Lock votes
-        async function lockVotes() {
-            const allVoted = categories.every(cat => votes[cat.id] !== null);
-            if (!allVoted) {
-                showToast('Please vote in all categories first!');
-                return;
-            }
-
-            const confirmed = await showConfirm(
-                'Are you sure you want to lock in your votes? This cannot be undone!',
-                'Lock In Votes'
-            );
-            if (!confirmed) return;
-            
-            // Update vote counts in entries
-            for (let categoryId in votes) {
-                if (votes[categoryId]) {
-                    const entry = entries.find(e => e.id === votes[categoryId]);
-                    if (entry) {
-                        entry.votes[categoryId]++;
-                    }
-                }
-            }
-            
-            // Save to localStorage
-            localStorage.setItem('halloweenEntries', JSON.stringify(entries));
-            
-            // Clear session votes
-            sessionStorage.removeItem('halloweenVotes');
-            votes = {
-                couple: null,
-                funny: null,
-                scary: null,
-                overall: null
-            };
-            
-            showToast('Votes locked in successfully! 🎉');
-
-            // Redirect to thank you page
-            setTimeout(() => {
-                showToast('Redirecting to thank you page...');
-            }, 1500);
-
-            setTimeout(() => {
-                window.location.href = '/thank-you';
-            }, 3000);
-        }
-
-        // Reset votes
-        async function resetVotes() {
-            const confirmed = await showConfirm(
-                'Reset all your votes?',
-                'Reset Votes'
-            );
-            if (!confirmed) {
-                return;
-            }
-
-            try {
-                // Delete all votes for this voter from the database
-                const categoriesToDelete = ['couple', 'funny', 'scary', 'overall'];
-                const deletePromises = [];
-
-                for (const category of categoriesToDelete) {
-                    if (votes[category] !== null) {
-                        // Only delete if there's a vote in this category
-                        const deletePromise = fetch(`/api/voter-vote/${voterId}/${category}`, {
-                            method: 'DELETE'
-                        });
-                        deletePromises.push(deletePromise);
-                    }
-                }
-
-                // Wait for all deletions to complete
-                await Promise.all(deletePromises);
-
-                // Reset local votes object
-                votes = {
-                    couple: null,
-                    funny: null,
-                    scary: null,
-                    overall: null
-                };
-
-                renderCategories();
-                updateLockButton();
-                showToast('All votes reset!');
-                toggleMenu();
-            } catch (error) {
-                console.error('Error resetting votes:', error);
-                showToast('Failed to reset votes. Please try again.');
-            }
-        }
-
-        // Reset votes from bottom button
-        async function resetVotesBottom() {
-            const confirmed = await showConfirm(
-                'Reset all your votes?',
-                'Reset Votes'
-            );
-            if (!confirmed) {
-                return;
-            }
-
-            try{
-                // Delete all votes for this voter from the database
-                const categoriesToDelete = ['couple', 'funny', 'scary', 'overall'];
-                const deletePromises = [];
-
-                for (const category of categoriesToDelete) {
-                    if (votes[category] !== null) {
-                        // Only delete if there's a vote in this category
-                        const deletePromise = fetch(`/api/voter-vote/${voterId}/${category}`, {
-                            method: 'DELETE'
-                        });
-                        deletePromises.push(deletePromise);
-                    }
-                }
-
-                // Wait for all deletions to complete
-                await Promise.all(deletePromises);
-
-                // Reset local votes object
-                votes = {
-                    couple: null,
-                    funny: null,
-                    scary: null,
-                    overall: null
-                };
-
-                renderCategories();
-                updateLockButton();
-                showToast('All votes reset!');
-            } catch (error) {
-                console.error('Error resetting votes:', error);
-                showToast('Failed to reset votes. Please try again.');
-            }
-        }
-
-        // Toggle menu
-        function toggleMenu() {
-            const menu = document.getElementById('sideMenu');
-            const overlay = document.getElementById('menuOverlay');
-            menu.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        // Show about
-        function showAbout() {
-            const overlay = document.getElementById('aboutModalOverlay');
-            overlay.classList.add('active');
-            toggleMenu();
-            // Reset tap counter when opening modal
-            thumbsUpTaps = 0;
-        }
-
-        // Close about modal
-        function closeAboutModal() {
-            const overlay = document.getElementById('aboutModalOverlay');
-            overlay.classList.remove('active');
-            // Reset tap counter when closing
-            thumbsUpTaps = 0;
-            if (thumbsUpTimeout) {
-                clearTimeout(thumbsUpTimeout);
-                thumbsUpTimeout = null;
-            }
-        }
-
-        // Handle thumbs up tap for hidden admin access
-        function handleThumbsUpTap() {
-            thumbsUpTaps++;
-            console.log('Thumbs up taps:', thumbsUpTaps);
-
-            // Reset counter after 3 seconds of inactivity
-            if (thumbsUpTimeout) {
-                clearTimeout(thumbsUpTimeout);
-            }
-            thumbsUpTimeout = setTimeout(() => {
-                thumbsUpTaps = 0;
-            }, 3000);
-
-            // After 5 taps, prompt for PIN
-            if (thumbsUpTaps >= 5) {
-                thumbsUpTaps = 0; // Reset counter
-                if (thumbsUpTimeout) {
-                    clearTimeout(thumbsUpTimeout);
-                    thumbsUpTimeout = null;
-                }
-
-                // Prompt for PIN
-                const pin = prompt('Enter admin PIN:');
-
-                // Check if PIN is correct
-                if (pin === '7827') {
-                    closeAboutModal();
-                    window.location.href = '/admin';
-                } else if (pin !== null) {
-                    // User entered something but it was wrong
-                    showToast('Incorrect PIN');
-                }
-            }
-        }
-
-        // Show directions modal
-        function showDirections() {
-            const overlay = document.getElementById('directionsModalOverlay');
-            overlay.classList.add('active');
-            toggleMenu();
-        }
-
-        // Close directions modal
-        function closeDirectionsModal() {
-            const overlay = document.getElementById('directionsModalOverlay');
-            overlay.classList.remove('active');
-        }
-
-        // Open directions in maps app
-        function openDirections() {
-            const address = '20 Clarendon Road, Savannah, GA 31410';
-            const encodedAddress = encodeURIComponent(address);
-
-            // Detect if iOS device
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-            if (isIOS) {
-                // Try Apple Maps first on iOS
-                window.location.href = `maps://maps.apple.com/?daddr=${encodedAddress}`;
-            } else {
-                // Use Google Maps on Android/other devices
-                window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
-            }
-        }
-
-        // Show game modal
-        function showGame() {
-            const overlay = document.getElementById('gameModalOverlay');
-            overlay.classList.add('active');
-            toggleMenu();
-        }
-
-        // Close game modal
-        function closeGameModal() {
-            const overlay = document.getElementById('gameModalOverlay');
-            overlay.classList.remove('active');
-        }
-
-        // Launch the AR game in a new tab
-        function launchGame() {
-            window.open('https://hauntedhousehunters.vercel.app', '_blank');
-            closeGameModal();
-        }
-
-        // Show toast
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
-        }
-
-        // Custom confirmation modal (replaces browser confirm())
-        function showConfirm(message, title = 'Confirm Action') {
-            return new Promise((resolve) => {
-                const overlay = document.getElementById('confirmModalOverlay');
-                const titleEl = document.getElementById('confirmModalTitle');
-                const messageEl = document.getElementById('confirmModalMessage');
-                const cancelBtn = document.getElementById('confirmModalCancel');
-                const confirmBtn = document.getElementById('confirmModalConfirm');
-
-                titleEl.textContent = title;
-                messageEl.textContent = message;
-                overlay.classList.add('active');
-
-                const cleanup = () => {
-                    overlay.classList.remove('active');
-                    cancelBtn.removeEventListener('click', handleCancel);
-                    confirmBtn.removeEventListener('click', handleConfirm);
-                };
-
-                const handleCancel = () => {
-                    cleanup();
-                    resolve(false);
-                };
-
-                const handleConfirm = () => {
-                    cleanup();
-                    resolve(true);
-                };
-
-                cancelBtn.addEventListener('click', handleCancel);
-                confirmBtn.addEventListener('click', handleConfirm);
-            });
-        }
-
-        // Secret key sequence handler
-        function handleSecretKey(event) {
-            // Only track letter keys
-            if (event.key.length === 1 && /[a-zA-Z]/.test(event.key)) {
-                keySequence += event.key.toLowerCase();
-                
-                // Keep only last 5 characters
-                if (keySequence.length > 5) {
-                    keySequence = keySequence.slice(-5);
-                }
-                
-                // Check if secret sequence matches
-                if (keySequence === secretTrigger) {
-                    keySequence = ''; // Reset
-                    window.location.href = 'admin.html';
-                }
-            }
-        }
-
-        // Add Entry Functions
-        let newEntryPhotoFile = null;
-
-        function openAddEntryOverlay() {
-            const overlay = document.getElementById('addEntryOverlay');
-            const title = overlay.querySelector('.overlay-title');
-            const photoLabel = document.getElementById('photoLabel');
-            const photoPrompt = document.getElementById('photoPrompt');
-            const submitBtn = document.getElementById('submitEntryBtn');
-
-            // If editing, pre-fill the form
-            if (myEntry) {
-                title.textContent = 'Edit Your Costume Entry';
-                document.getElementById('newEntryName').value = myEntry.name;
-                document.getElementById('newEntryType').value = myEntry.type;
-                photoLabel.textContent = 'Change Photo (Optional)';
-                photoPrompt.textContent = 'Tap to change photo';
-                submitBtn.textContent = 'Update Entry 🎃';
-
-                // Show current photo
-                if (myEntry.cloud_url || myEntry.image_url) {
-                    document.getElementById('newEntryPhotoImg').src = myEntry.cloud_url || myEntry.image_url;
-                    document.getElementById('newEntryPhotoPreview').style.display = 'block';
-                }
-            } else {
-                title.textContent = 'Add Your Costume Entry';
-                photoLabel.textContent = 'Take a Photo';
-                photoPrompt.textContent = 'Tap to take photo';
-                submitBtn.textContent = 'Submit Entry 🎃';
-            }
-
-            overlay.classList.add('active');
-        }
-
-        function closeAddEntryOverlay() {
-            document.getElementById('addEntryOverlay').classList.remove('active');
-            // Reset form
-            document.getElementById('newEntryName').value = '';
-            document.getElementById('newEntryType').value = 'individual';
-            document.getElementById('newEntryPhoto').value = '';
-            document.getElementById('newEntryPhotoPreview').style.display = 'none';
-            newEntryPhotoFile = null;
-        }
-
-        function handleNewEntryPhoto(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                newEntryPhotoFile = file;
+        // Handle file selection
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+
+                // Show preview
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('newEntryPhotoImg').src = e.target.result;
-                    document.getElementById('newEntryPhotoPreview').style.display = 'block';
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('uploadPreview').style.display = 'block';
+                    document.getElementById('uploadForm').style.display = 'block';
+                    document.getElementById('selectPhotoBtn').style.display = 'none';
                 };
                 reader.readAsDataURL(file);
             }
-        }
-
-        async function submitNewEntry() {
-            const name = document.getElementById('newEntryName').value.trim();
-            const type = document.getElementById('newEntryType').value;
-
-            if (!name) {
-                showToast('Please enter a name!');
-                return;
-            }
-
-            // If editing and no new photo, that's okay - we keep the old photo
-            // If creating new entry, require a photo
-            if (!myEntry && !newEntryPhotoFile) {
-                showToast('Please take a photo!');
-                return;
-            }
-
-            try {
-                if (myEntry) {
-                    // UPDATE existing entry
-                    showToast('Updating entry...');
-
-                    // If there's a new photo, upload it
-                    if (newEntryPhotoFile) {
-                        const formData = new FormData();
-                        formData.append('photo', newEntryPhotoFile);
-                        formData.append('name', name);
-                        formData.append('type', type);
-                        formData.append('description', '');
-                        formData.append('submittedBy', voterId);
-
-                        const response = await fetch('/api/upload', {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (!response.ok) {
-                            const error = await response.json();
-                            throw new Error(error.error || 'Upload failed');
-                        }
-
-                        const result = await response.json();
-                        const newImageUrl = result.entry.cloud_url || result.entry.image_url;
-
-                        // Update entry with new photo
-                        await fetch(`/api/entries/${myEntry.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                name,
-                                type,
-                                image_url: result.entry.image_url,
-                                cloud_url: result.entry.cloud_url
-                            })
-                        });
-                    } else {
-                        // Just update name/type without changing photo
-                        const response = await fetch(`/api/entries/${myEntry.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ name, type })
-                        });
-
-                        if (!response.ok) {
-                            const error = await response.json();
-                            throw new Error(error.error || 'Update failed');
-                        }
-                    }
-
-                    showToast('Entry updated successfully! 🎉');
-                } else {
-                    // CREATE new entry
-                    showToast('Uploading entry...');
-
-                    const formData = new FormData();
-                    formData.append('photo', newEntryPhotoFile);
-                    formData.append('name', name);
-                    formData.append('type', type);
-                    formData.append('description', '');
-                    formData.append('submittedBy', voterId);
-
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.error || 'Upload failed');
-                    }
-
-                    showToast('Entry added successfully! 🎉');
-                }
-
-                // Reload entries and my entry
-                await loadEntries();
-                await loadMyEntry();
-                renderCategories();
-
-                closeAddEntryOverlay();
-            } catch (error) {
-                console.error('Submit error:', error);
-                showToast('Failed: ' + error.message);
-            }
-        }
-
-        // Initialize on load
-        window.addEventListener('load', () => {
-            init();
         });
 
-        // Add secret key listener
-        document.addEventListener('keydown', handleSecretKey);
+        function cancelUpload() {
+            selectedFile = null;
+            document.getElementById('photoInput').value = '';
+            document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('uploadForm').style.display = 'none';
+            document.getElementById('selectPhotoBtn').style.display = 'block';
+            document.getElementById('costumeNameInput').value = '';
+            document.getElementById('costumeTypeInput').value = 'individual';
+            document.getElementById('uploadMessage').style.display = 'none';
+            document.getElementById('uploadError').style.display = 'none';
+        }
+
+        async function submitUpload() {
+            const name = document.getElementById('costumeNameInput').value.trim();
+            const type = document.getElementById('costumeTypeInput').value;
+
+            if (!name) {
+                showError('Please enter your name or team name');
+                return;
+            }
+
+            if (!selectedFile) {
+                showError('Please select a photo');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            const formData = new FormData();
+            formData.append('photo', selectedFile);
+            formData.append('name', name);
+            formData.append('type', type);
+            formData.append('description', '');
+            formData.append('submittedBy', voterId);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('✅ Costume uploaded successfully!');
+                    setTimeout(() => {
+                        cancelUpload();
+                    }, 2000);
+                } else {
+                    showError(result.error || 'Upload failed');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Entry 🎃';
+                }
+            } catch (error) {
+                showError('Upload failed: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Entry 🎃';
+            }
+        }
+
+        function showMessage(message) {
+            const msgEl = document.getElementById('uploadMessage');
+            msgEl.textContent = message;
+            msgEl.style.display = 'block';
+            document.getElementById('uploadError').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errEl = document.getElementById('uploadError');
+            errEl.textContent = message;
+            errEl.style.display = 'block';
+            document.getElementById('uploadMessage').style.display = 'none';
+        }
+
+        // Countdown timer
+        function updateCountdown() {
+            if (!timingSettings || !timingSettings.votingStart) {
+                document.getElementById('countdown').textContent = 'Loading...';
+                return;
+            }
+
+            // Use voting start time from database settings
+            const votingStart = new Date(timingSettings.votingStart + ':00');
+            const now = new Date();
+            const diff = votingStart - now;
+
+            if (diff <= 0) {
+                document.getElementById('countdown').textContent = 'Voting is starting!';
+                // Don't auto-redirect - let checkStatus handle it
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('countdown').textContent =
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Check current status - DISABLED (manual control only)
+        async function checkStatus() {
+            console.log('[PRESHOW] Status check disabled - staying on preshow page');
+            // Timing feature disabled - users stay on preshow until manually navigating
+        }
+
+        // Initialize on page load
+        async function init() {
+            console.log('[PRESHOW] Initializing...');
+
+            // Get or create voter ID
+            voterId = getVoterId();
+            console.log('[PRESHOW] Voter ID:', voterId);
+
+            // Note: Timing checks disabled - preshow stays active until manual navigation
+            console.log('[PRESHOW] Timing feature disabled - users will stay on preshow page');
+        }
+
+        // Start initialization
+        init();
     </script>
 </body>
 </html>
