@@ -361,32 +361,41 @@
                         <div id="uploadMessage" class="upload-message"></div>
                         <div id="uploadError" class="upload-error"></div>
 
-                        <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                        <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;">
 
                         <div id="uploadPreview" style="display: none; margin-bottom: 20px; text-align: center;">
                             <img id="previewImage" style="max-width: 100%; max-height: 300px; border-radius: 10px; margin-bottom: 15px;">
                         </div>
 
                         <div id="uploadForm" style="display: none;">
-                            <input type="text" id="costumeNameInput" placeholder="Your Name" required
-                                   style="width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px;
-                                          border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
-                                          color: white; font-size: 1.1em; box-sizing: border-box;">
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: #ffd700; font-weight: 600; margin-bottom: 8px; display: block; text-align: left;">Your Name / Team Name</label>
+                                <input type="text" id="costumeNameInput" placeholder="e.g., The Addams Family" required
+                                       style="width: 100%; padding: 15px; border-radius: 10px;
+                                              border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
+                                              color: white; font-size: 1em; box-sizing: border-box;">
+                            </div>
 
-                            <textarea id="costumeDescInput" placeholder="Describe your costume (optional)" rows="3"
-                                      style="width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 10px;
-                                             border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
-                                             color: white; font-size: 1em; font-family: inherit; resize: none; box-sizing: border-box;"></textarea>
+                            <div style="margin-bottom: 20px;">
+                                <label style="color: #ffd700; font-weight: 600; margin-bottom: 8px; display: block; text-align: left;">Entry Type</label>
+                                <select id="costumeTypeInput"
+                                        style="width: 100%; padding: 15px; border-radius: 10px;
+                                               border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
+                                               color: white; font-size: 1em; box-sizing: border-box;">
+                                    <option value="individual">Individual</option>
+                                    <option value="couple">Couple/Group</option>
+                                </select>
+                            </div>
 
                             <div style="display: flex; gap: 10px;">
                                 <button onclick="cancelUpload()" class="secondary-btn" style="flex: 1;">Cancel</button>
-                                <button onclick="submitUpload()" id="submitBtn" class="primary-btn" style="flex: 1;">Upload</button>
+                                <button onclick="submitUpload()" id="submitBtn" class="primary-btn" style="flex: 1;">Submit Entry 🎃</button>
                             </div>
                         </div>
 
                         <button id="selectPhotoBtn" onclick="document.getElementById('photoInput').click()"
                                 class="primary-btn" style="width: 100%;">
-                            📸 Select Photo
+                            📸 Take Photo
                         </button>
                     </div>
 
@@ -418,6 +427,18 @@
     <script>
         let selectedFile = null;
         let timingSettings = null;
+        let voterId = null;
+
+        // Get or create voter ID
+        function getVoterId() {
+            let id = localStorage.getItem('halloweenVoterId');
+            if (!id) {
+                // Generate a unique voter ID
+                id = 'voter_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                localStorage.setItem('halloweenVoterId', id);
+            }
+            return id;
+        }
 
         // Load timing settings from server
         async function loadTimingSettings() {
@@ -460,17 +481,17 @@
             document.getElementById('uploadForm').style.display = 'none';
             document.getElementById('selectPhotoBtn').style.display = 'block';
             document.getElementById('costumeNameInput').value = '';
-            document.getElementById('costumeDescInput').value = '';
+            document.getElementById('costumeTypeInput').value = 'individual';
             document.getElementById('uploadMessage').style.display = 'none';
             document.getElementById('uploadError').style.display = 'none';
         }
 
         async function submitUpload() {
             const name = document.getElementById('costumeNameInput').value.trim();
-            const description = document.getElementById('costumeDescInput').value.trim();
+            const type = document.getElementById('costumeTypeInput').value;
 
             if (!name) {
-                showError('Please enter your name');
+                showError('Please enter your name or team name');
                 return;
             }
 
@@ -486,8 +507,9 @@
             const formData = new FormData();
             formData.append('photo', selectedFile);
             formData.append('name', name);
-            formData.append('description', description);
-            formData.append('type', 'individual');
+            formData.append('type', type);
+            formData.append('description', '');
+            formData.append('submittedBy', voterId);
 
             try {
                 const response = await fetch('/api/upload', {
@@ -505,12 +527,12 @@
                 } else {
                     showError(result.error || 'Upload failed');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Upload';
+                    submitBtn.textContent = 'Submit Entry 🎃';
                 }
             } catch (error) {
                 showError('Upload failed: ' + error.message);
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Upload';
+                submitBtn.textContent = 'Submit Entry 🎃';
             }
         }
 
@@ -575,6 +597,10 @@
         // Initialize on page load
         async function init() {
             console.log('[PRESHOW] Initializing...');
+
+            // Get or create voter ID
+            voterId = getVoterId();
+            console.log('[PRESHOW] Voter ID:', voterId);
 
             // Load timing settings first
             await loadTimingSettings();
