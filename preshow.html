@@ -417,6 +417,23 @@
 
     <script>
         let selectedFile = null;
+        let timingSettings = null;
+
+        // Load timing settings from server
+        async function loadTimingSettings() {
+            try {
+                const response = await fetch('/api/timing-status');
+                if (response.ok) {
+                    const data = await response.json();
+                    timingSettings = data.settings;
+                    console.log('[PRESHOW] Timing settings loaded:', timingSettings);
+                } else {
+                    console.error('[PRESHOW] Failed to load timing settings');
+                }
+            } catch (error) {
+                console.error('[PRESHOW] Error loading timing settings:', error);
+            }
+        }
 
         // Handle file selection
         document.getElementById('photoInput').addEventListener('change', function(e) {
@@ -513,16 +530,19 @@
 
         // Countdown timer
         function updateCountdown() {
-            // Default voting start time
-            const votingStart = new Date('2024-10-25T19:45:00');
+            if (!timingSettings || !timingSettings.votingStart) {
+                document.getElementById('countdown').textContent = 'Loading...';
+                return;
+            }
+
+            // Use voting start time from database settings
+            const votingStart = new Date(timingSettings.votingStart + ':00');
             const now = new Date();
             const diff = votingStart - now;
 
             if (diff <= 0) {
                 document.getElementById('countdown').textContent = 'Voting is starting!';
-                setTimeout(() => {
-                    window.location.href = '/vote';
-                }, 2000);
+                // Don't auto-redirect - let checkStatus handle it
                 return;
             }
 
@@ -552,16 +572,27 @@
             }
         }
 
-        // Auto-refresh status every 60 seconds (1 minute) - 60000ms = 60 seconds
-        console.log('[PRESHOW] Setting up status check interval: every 60 seconds');
-        setInterval(checkStatus, 60000);
+        // Initialize on page load
+        async function init() {
+            console.log('[PRESHOW] Initializing...');
 
-        // Update countdown every second
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+            // Load timing settings first
+            await loadTimingSettings();
 
-        // Initial status check on page load
-        checkStatus();
+            // Start countdown updates
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+
+            // Check status immediately
+            checkStatus();
+
+            // Auto-refresh status every 60 seconds (1 minute) - 60000ms = 60 seconds
+            console.log('[PRESHOW] Setting up status check interval: every 60 seconds');
+            setInterval(checkStatus, 60000);
+        }
+
+        // Start initialization
+        init();
     </script>
 </body>
 </html>
