@@ -329,6 +329,75 @@
                 padding-bottom: max(40px, env(safe-area-inset-bottom));
             }
         }
+
+        /* Voting Overlay */
+        .voting-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, #1a0033 0%, #330066 50%, #4d0099 100%);
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+        }
+
+        .voting-overlay.active {
+            display: flex;
+        }
+
+        @media (min-width: 768px) {
+            .voting-overlay {
+                border-radius: 40px;
+                overflow: hidden;
+            }
+        }
+
+        .overlay-header {
+            flex-shrink: 0;
+            background: rgba(26, 0, 51, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            background: rgba(255, 107, 0, 0.2);
+            border: 2px solid #ff6b00;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #ff6b00;
+            font-size: 1.5em;
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .overlay-title {
+            flex: 1;
+            color: #ff6b00;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .voting-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 <body>
@@ -353,51 +422,10 @@
                         <span>🧙‍♀️</span>
                     </div>
 
-                    <!-- Upload Section -->
-                    <div class="upload-section" id="uploadSection">
-                        <div class="upload-icon">📸</div>
-                        <h3 style="color: #ffd700; font-size: 1.4em; margin-bottom: 15px; text-align: center;">Upload Your Costume</h3>
-
-                        <div id="uploadMessage" class="upload-message"></div>
-                        <div id="uploadError" class="upload-error"></div>
-
-                        <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;">
-
-                        <div id="uploadPreview" style="display: none; margin-bottom: 20px; text-align: center;">
-                            <img id="previewImage" style="max-width: 100%; max-height: 300px; border-radius: 10px; margin-bottom: 15px;">
-                        </div>
-
-                        <div id="uploadForm" style="display: none;">
-                            <div style="margin-bottom: 15px;">
-                                <label style="color: #ffd700; font-weight: 600; margin-bottom: 8px; display: block; text-align: left;">Your Name / Team Name</label>
-                                <input type="text" id="costumeNameInput" placeholder="e.g., The Addams Family" required
-                                       style="width: 100%; padding: 15px; border-radius: 10px;
-                                              border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
-                                              color: white; font-size: 1em; box-sizing: border-box;">
-                            </div>
-
-                            <div style="margin-bottom: 20px;">
-                                <label style="color: #ffd700; font-weight: 600; margin-bottom: 8px; display: block; text-align: left;">Entry Type</label>
-                                <select id="costumeTypeInput"
-                                        style="width: 100%; padding: 15px; border-radius: 10px;
-                                               border: 2px solid rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.3);
-                                               color: white; font-size: 1em; box-sizing: border-box;">
-                                    <option value="individual">Individual</option>
-                                    <option value="couple">Couple/Group</option>
-                                </select>
-                            </div>
-
-                            <div style="display: flex; gap: 10px;">
-                                <button onclick="cancelUpload()" class="secondary-btn" style="flex: 1;">Cancel</button>
-                                <button onclick="submitUpload()" id="submitBtn" class="primary-btn" style="flex: 1;">Submit Entry 🎃</button>
-                            </div>
-                        </div>
-
-                        <button id="selectPhotoBtn" onclick="document.getElementById('photoInput').click()"
-                                class="primary-btn" style="width: 100%;">
-                            📸 Take Photo
-                        </button>
-                    </div>
+                    <!-- Enter Contest Button -->
+                    <button onclick="openEntryOverlay()" class="primary-btn" style="width: 100%; font-size: 1.3em; padding: 25px;">
+                        🎃 Enter Contest
+                    </button>
 
                     <div class="timing-info">
                         <h3>📅 What's Happening</h3>
@@ -417,91 +445,116 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Entry Overlay -->
+            <div class="voting-overlay" id="entryOverlay">
+                <div class="overlay-header">
+                    <div class="back-btn" onclick="closeEntryOverlay()">‹</div>
+                    <div class="overlay-title">Add Your Costume Entry</div>
+                </div>
+                <div class="voting-scroll">
+                    <div style="padding: 20px 15px;">
+                        <div class="form-group">
+                            <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;">Your Name / Team Name</label>
+                            <input type="text" id="newEntryName" placeholder="e.g., The Addams Family" style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 107, 0, 0.3); background: rgba(255, 255, 255, 0.05); color: white; font-size: 1em;">
+                        </div>
+
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;">Entry Type</label>
+                            <select id="newEntryType" style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 107, 0, 0.3); background: rgba(255, 255, 255, 0.05); color: white; font-size: 1em;">
+                                <option value="individual">Individual</option>
+                                <option value="couple">Couple/Group</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label style="color: #ff8c00; font-weight: 600; margin-bottom: 8px; display: block;" id="photoLabel">Take a Photo</label>
+                            <input type="file" id="newEntryPhoto" accept="image/*" capture="environment" style="display: none;" onchange="handleNewEntryPhoto(event)">
+                            <label for="newEntryPhoto" style="display: block; padding: 40px; border: 3px dashed rgba(255, 107, 0, 0.5); border-radius: 12px; text-align: center; cursor: pointer; background: rgba(0, 0, 0, 0.3);">
+                                <div style="font-size: 3em; margin-bottom: 10px;">📸</div>
+                                <div style="color: rgba(255, 255, 255, 0.7);" id="photoPrompt">Tap to take photo</div>
+                            </label>
+                            <div id="newEntryPhotoPreview" style="display: none; margin-top: 15px; text-align: center;">
+                                <img id="newEntryPhotoImg" style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px; border: 3px solid #ff6b00;">
+                            </div>
+                        </div>
+
+                        <button onclick="submitNewEntry()" id="submitEntryBtn" style="width: 100%; margin-top: 25px; padding: 18px; border: none; border-radius: 15px; background: linear-gradient(135deg, #00ff00, #00cc00); color: #000; font-size: 1.1em; font-weight: 700; cursor: pointer; text-transform: uppercase;">
+                            Submit Entry 🎃
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        let selectedFile = null;
-        let timingSettings = null;
+        let newEntryPhotoFile = null;
         let voterId = null;
 
         // Get or create voter ID
         function getVoterId() {
             let id = localStorage.getItem('halloweenVoterId');
             if (!id) {
-                // Generate a unique voter ID
                 id = 'voter_' + Date.now() + '_' + Math.random().toString(36).substring(7);
                 localStorage.setItem('halloweenVoterId', id);
             }
             return id;
         }
 
-        // Load timing settings from server
-        async function loadTimingSettings() {
-            try {
-                const response = await fetch('/api/timing-status');
-                if (response.ok) {
-                    const data = await response.json();
-                    timingSettings = data.settings;
-                    console.log('[PRESHOW] Timing settings loaded:', timingSettings);
-                } else {
-                    console.error('[PRESHOW] Failed to load timing settings');
-                }
-            } catch (error) {
-                console.error('[PRESHOW] Error loading timing settings:', error);
-            }
+        // Open entry overlay
+        function openEntryOverlay() {
+            const overlay = document.getElementById('entryOverlay');
+            overlay.classList.add('active');
         }
 
-        // Handle file selection
-        document.getElementById('photoInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                selectedFile = file;
+        // Close entry overlay
+        function closeEntryOverlay() {
+            const overlay = document.getElementById('entryOverlay');
+            overlay.classList.remove('active');
+            // Reset form
+            document.getElementById('newEntryName').value = '';
+            document.getElementById('newEntryType').value = 'individual';
+            document.getElementById('newEntryPhoto').value = '';
+            document.getElementById('newEntryPhotoPreview').style.display = 'none';
+            newEntryPhotoFile = null;
+        }
 
-                // Show preview
+        // Handle photo selection
+        function handleNewEntryPhoto(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                newEntryPhotoFile = file;
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('previewImage').src = e.target.result;
-                    document.getElementById('uploadPreview').style.display = 'block';
-                    document.getElementById('uploadForm').style.display = 'block';
-                    document.getElementById('selectPhotoBtn').style.display = 'none';
+                    document.getElementById('newEntryPhotoImg').src = e.target.result;
+                    document.getElementById('newEntryPhotoPreview').style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
-        });
-
-        function cancelUpload() {
-            selectedFile = null;
-            document.getElementById('photoInput').value = '';
-            document.getElementById('uploadPreview').style.display = 'none';
-            document.getElementById('uploadForm').style.display = 'none';
-            document.getElementById('selectPhotoBtn').style.display = 'block';
-            document.getElementById('costumeNameInput').value = '';
-            document.getElementById('costumeTypeInput').value = 'individual';
-            document.getElementById('uploadMessage').style.display = 'none';
-            document.getElementById('uploadError').style.display = 'none';
         }
 
-        async function submitUpload() {
-            const name = document.getElementById('costumeNameInput').value.trim();
-            const type = document.getElementById('costumeTypeInput').value;
+        // Submit new entry
+        async function submitNewEntry() {
+            const name = document.getElementById('newEntryName').value.trim();
+            const type = document.getElementById('newEntryType').value;
 
             if (!name) {
-                showError('Please enter your name or team name');
+                alert('Please enter your name or team name');
                 return;
             }
 
-            if (!selectedFile) {
-                showError('Please select a photo');
+            if (!newEntryPhotoFile) {
+                alert('Please take a photo');
                 return;
             }
 
-            const submitBtn = document.getElementById('submitBtn');
+            const submitBtn = document.getElementById('submitEntryBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Uploading...';
 
             const formData = new FormData();
-            formData.append('photo', selectedFile);
+            formData.append('photo', newEntryPhotoFile);
             formData.append('name', name);
             formData.append('type', type);
             formData.append('description', '');
@@ -516,78 +569,25 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showMessage('✅ Costume uploaded successfully!');
-                    setTimeout(() => {
-                        cancelUpload();
-                    }, 2000);
+                    alert('✅ Costume uploaded successfully!');
+                    closeEntryOverlay();
                 } else {
-                    showError(result.error || 'Upload failed');
+                    alert('Upload failed: ' + (result.error || 'Unknown error'));
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit Entry 🎃';
                 }
             } catch (error) {
-                showError('Upload failed: ' + error.message);
+                alert('Upload failed: ' + error.message);
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Entry 🎃';
             }
         }
 
-        function showMessage(message) {
-            const msgEl = document.getElementById('uploadMessage');
-            msgEl.textContent = message;
-            msgEl.style.display = 'block';
-            document.getElementById('uploadError').style.display = 'none';
-        }
-
-        function showError(message) {
-            const errEl = document.getElementById('uploadError');
-            errEl.textContent = message;
-            errEl.style.display = 'block';
-            document.getElementById('uploadMessage').style.display = 'none';
-        }
-
-        // Countdown timer
-        function updateCountdown() {
-            if (!timingSettings || !timingSettings.votingStart) {
-                document.getElementById('countdown').textContent = 'Loading...';
-                return;
-            }
-
-            // Use voting start time from database settings
-            const votingStart = new Date(timingSettings.votingStart + ':00');
-            const now = new Date();
-            const diff = votingStart - now;
-
-            if (diff <= 0) {
-                document.getElementById('countdown').textContent = 'Voting is starting!';
-                // Don't auto-redirect - let checkStatus handle it
-                return;
-            }
-
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-            document.getElementById('countdown').textContent =
-                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        // Check current status - DISABLED (manual control only)
-        async function checkStatus() {
-            console.log('[PRESHOW] Status check disabled - staying on preshow page');
-            // Timing feature disabled - users stay on preshow until manually navigating
-        }
-
         // Initialize on page load
-        async function init() {
+        function init() {
             console.log('[PRESHOW] Initializing...');
-
-            // Get or create voter ID
             voterId = getVoterId();
             console.log('[PRESHOW] Voter ID:', voterId);
-
-            // Note: Timing checks disabled - preshow stays active until manual navigation
-            console.log('[PRESHOW] Timing feature disabled - users will stay on preshow page');
         }
 
         // Start initialization
