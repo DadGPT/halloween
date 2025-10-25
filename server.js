@@ -215,10 +215,10 @@ function getPhaseMessage(phase) {
 
 // Routes
 
-// Root route - redirect to preshow page (timing disabled)
+// Root route - serve preshow page directly (timing disabled)
 app.get('/', (req, res) => {
-    console.log('=== / (root) route accessed - redirecting to preshow ===');
-    res.redirect('/preshow');
+    console.log('=== / (root) route accessed - serving preshow.html ===');
+    res.sendFile(path.join(__dirname, 'preshow.html'));
 });
 
 app.get('/welcome', (req, res) => {
