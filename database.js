@@ -442,7 +442,7 @@ class DatabaseService {
         try {
             console.log('Fetching timing settings from database...');
             const { data, error } = await this.supabase
-                .from('timing_settings')
+                .from('contest_timing')
                 .select('*')
                 .eq('id', 1)
                 .single();
@@ -491,7 +491,7 @@ class DatabaseService {
             };
 
             const { data, error } = await this.supabase
-                .from('timing_settings')
+                .from('contest_timing')
                 .update(dbSettings)
                 .eq('id', 1)
                 .select()

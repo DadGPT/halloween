@@ -1,7 +1,7 @@
--- Create timing_settings table for global contest timing configuration
+-- Create contest_timing table for global contest timing configuration
 -- This is a singleton table (only 1 row) to store global timing settings
 
-CREATE TABLE IF NOT EXISTS timing_settings (
+CREATE TABLE IF NOT EXISTS contest_timing (
     id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- Enforce singleton pattern
     enabled BOOLEAN NOT NULL DEFAULT false,
     pre_show_start TEXT NOT NULL DEFAULT '2025-10-25T18:30',
@@ -15,28 +15,28 @@ CREATE TABLE IF NOT EXISTS timing_settings (
 );
 
 -- Insert default row (singleton)
-INSERT INTO timing_settings (id) VALUES (1)
+INSERT INTO contest_timing (id) VALUES (1)
 ON CONFLICT (id) DO NOTHING;
 
 -- Add RLS (Row Level Security) policies
-ALTER TABLE timing_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contest_timing ENABLE ROW LEVEL SECURITY;
 
 -- Allow anyone to read timing settings
-CREATE POLICY "Allow public read access to timing_settings"
-ON timing_settings FOR SELECT
+CREATE POLICY "Allow public read access to contest_timing"
+ON contest_timing FOR SELECT
 TO public
 USING (true);
 
 -- Only authenticated users can update (you can adjust this based on your auth setup)
 -- For now, allowing all updates since admin access is PIN-protected in the app
-CREATE POLICY "Allow all updates to timing_settings"
-ON timing_settings FOR UPDATE
+CREATE POLICY "Allow all updates to contest_timing"
+ON contest_timing FOR UPDATE
 TO public
 USING (true)
 WITH CHECK (true);
 
 -- Create updated_at trigger
-CREATE OR REPLACE FUNCTION update_timing_settings_updated_at()
+CREATE OR REPLACE FUNCTION update_contest_timing_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -44,10 +44,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER timing_settings_updated_at
-BEFORE UPDATE ON timing_settings
+CREATE TRIGGER contest_timing_updated_at
+BEFORE UPDATE ON contest_timing
 FOR EACH ROW
-EXECUTE FUNCTION update_timing_settings_updated_at();
+EXECUTE FUNCTION update_contest_timing_updated_at();
 
 -- Add comment
-COMMENT ON TABLE timing_settings IS 'Global timing settings for the Halloween contest. Singleton table with only one row.';
+COMMENT ON TABLE contest_timing IS 'Global timing settings for the Halloween contest. Singleton table with only one row.';
