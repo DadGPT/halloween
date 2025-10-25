@@ -423,7 +423,7 @@
                     </div>
 
                     <!-- Enter Contest Button -->
-                    <button onclick="openEntryOverlay()" class="primary-btn" style="width: 100%; font-size: 1.3em; padding: 25px;">
+                    <button onclick="openEntryOverlay()" id="enterContestBtn" class="primary-btn" style="width: 100%; font-size: 1.3em; padding: 25px;">
                         🎃 Enter Contest
                     </button>
 
@@ -491,6 +491,7 @@
     <script>
         let newEntryPhotoFile = null;
         let voterId = null;
+        let myEntry = null; // Track user's existing entry
 
         // Get or create voter ID
         function getVoterId() {
@@ -502,9 +503,55 @@
             return id;
         }
 
+        // Load user's existing entry
+        async function loadMyEntry() {
+            try {
+                const response = await fetch(`/api/my-entry/${voterId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    myEntry = data.entry;
+                    updateEnterButton();
+                    console.log('[PRESHOW] My entry:', myEntry);
+                }
+            } catch (error) {
+                console.error('[PRESHOW] Error loading my entry:', error);
+            }
+        }
+
+        // Update the Enter Contest button based on entry status
+        function updateEnterButton() {
+            const btn = document.getElementById('enterContestBtn');
+            if (myEntry) {
+                btn.innerHTML = '✏️ Edit Your Entry';
+            } else {
+                btn.innerHTML = '🎃 Enter Contest';
+            }
+        }
+
         // Open entry overlay
         function openEntryOverlay() {
             const overlay = document.getElementById('entryOverlay');
+            const title = overlay.querySelector('.overlay-title');
+
+            // Pre-fill form if editing
+            if (myEntry) {
+                title.textContent = 'Edit Your Costume Entry';
+                document.getElementById('newEntryName').value = myEntry.name;
+                document.getElementById('newEntryType').value = myEntry.type;
+                document.getElementById('photoLabel').textContent = 'Change Photo (Optional)';
+                document.getElementById('photoPrompt').textContent = 'Tap to change photo';
+
+                // Show current photo if exists
+                if (myEntry.cloud_url || myEntry.image_url) {
+                    document.getElementById('newEntryPhotoImg').src = myEntry.cloud_url || myEntry.image_url;
+                    document.getElementById('newEntryPhotoPreview').style.display = 'block';
+                }
+            } else {
+                title.textContent = 'Add Your Costume Entry';
+                document.getElementById('photoLabel').textContent = 'Take a Photo';
+                document.getElementById('photoPrompt').textContent = 'Tap to take photo';
+            }
+
             overlay.classList.add('active');
         }
 
@@ -534,7 +581,7 @@
             }
         }
 
-        // Submit new entry
+        // Submit new entry or update existing
         async function submitNewEntry() {
             const name = document.getElementById('newEntryName').value.trim();
             const type = document.getElementById('newEntryType').value;
@@ -544,50 +591,109 @@
                 return;
             }
 
-            if (!newEntryPhotoFile) {
+            // If creating new entry, require photo
+            // If editing, photo is optional (keep existing if not changed)
+            if (!myEntry && !newEntryPhotoFile) {
                 alert('Please take a photo');
                 return;
             }
 
             const submitBtn = document.getElementById('submitEntryBtn');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-
-            const formData = new FormData();
-            formData.append('photo', newEntryPhotoFile);
-            formData.append('name', name);
-            formData.append('type', type);
-            formData.append('description', '');
-            formData.append('submittedBy', voterId);
+            submitBtn.textContent = myEntry ? 'Updating...' : 'Uploading...';
 
             try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
+                if (myEntry) {
+                    // UPDATE existing entry
+                    if (newEntryPhotoFile) {
+                        // Upload new photo first
+                        const formData = new FormData();
+                        formData.append('photo', newEntryPhotoFile);
+                        formData.append('name', name);
+                        formData.append('type', type);
+                        formData.append('description', '');
+                        formData.append('submittedBy', voterId);
 
-                const result = await response.json();
+                        const uploadResponse = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
 
-                if (response.ok) {
-                    alert('✅ Costume uploaded successfully!');
-                    closeEntryOverlay();
+                        if (!uploadResponse.ok) {
+                            const error = await uploadResponse.json();
+                            throw new Error(error.error || 'Upload failed');
+                        }
+
+                        const uploadResult = await uploadResponse.json();
+
+                        // Update entry with new photo
+                        await fetch(`/api/entries/${myEntry.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name,
+                                type,
+                                image_url: uploadResult.entry.image_url,
+                                cloud_url: uploadResult.entry.cloud_url
+                            })
+                        });
+                    } else {
+                        // Just update name/type without changing photo
+                        const response = await fetch(`/api/entries/${myEntry.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, type })
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || 'Update failed');
+                        }
+                    }
+
+                    alert('✅ Entry updated successfully!');
                 } else {
-                    alert('Upload failed: ' + (result.error || 'Unknown error'));
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit Entry 🎃';
+                    // CREATE new entry
+                    const formData = new FormData();
+                    formData.append('photo', newEntryPhotoFile);
+                    formData.append('name', name);
+                    formData.append('type', type);
+                    formData.append('description', '');
+                    formData.append('submittedBy', voterId);
+
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.error || 'Upload failed');
+                    }
+
+                    alert('✅ Costume uploaded successfully!');
                 }
+
+                // Reload entry and update UI
+                await loadMyEntry();
+                closeEntryOverlay();
+
             } catch (error) {
-                alert('Upload failed: ' + error.message);
+                alert('Failed: ' + error.message);
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Entry 🎃';
             }
         }
 
         // Initialize on page load
-        function init() {
+        async function init() {
             console.log('[PRESHOW] Initializing...');
             voterId = getVoterId();
             console.log('[PRESHOW] Voter ID:', voterId);
+
+            // Load user's existing entry
+            await loadMyEntry();
         }
 
         // Start initialization
