@@ -406,10 +406,7 @@
                         </p>
                     </div>
 
-                    <div class="countdown-container">
-                        <div class="countdown-title">⏰ Voting Starts In:</div>
-                        <div class="countdown-display" id="countdown">Loading...</div>
-                    </div>
+                    <!-- Countdown removed - timing disabled -->
 
                     <div class="timing-info">
                         <h3>🗳️ Coming Up Next</h3>
@@ -575,22 +572,10 @@
                 `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        // Check current status
+        // Check current status - DISABLED (manual control only)
         async function checkStatus() {
-            console.log('[PRESHOW] Checking status at:', new Date().toLocaleTimeString());
-            try {
-                const response = await fetch('/api/timing-status');
-                const data = await response.json();
-
-                if (data.currentPhase.phase === 'voting') {
-                    window.location.href = '/vote';
-                } else if (data.currentPhase.phase === 'closed' || data.currentPhase.phase === 'results') {
-                    window.location.href = '/voting-closed';
-                }
-                // If still preshow, stay on this page
-            } catch (error) {
-                console.error('Error checking status:', error);
-            }
+            console.log('[PRESHOW] Status check disabled - staying on preshow page');
+            // Timing feature disabled - users stay on preshow until manually navigating
         }
 
         // Initialize on page load
@@ -601,19 +586,8 @@
             voterId = getVoterId();
             console.log('[PRESHOW] Voter ID:', voterId);
 
-            // Load timing settings first
-            await loadTimingSettings();
-
-            // Start countdown updates
-            setInterval(updateCountdown, 1000);
-            updateCountdown();
-
-            // Check status immediately
-            checkStatus();
-
-            // Auto-refresh status every 60 seconds (1 minute) - 60000ms = 60 seconds
-            console.log('[PRESHOW] Setting up status check interval: every 60 seconds');
-            setInterval(checkStatus, 60000);
+            // Note: Timing checks disabled - preshow stays active until manual navigation
+            console.log('[PRESHOW] Timing feature disabled - users will stay on preshow page');
         }
 
         // Start initialization
