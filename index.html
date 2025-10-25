@@ -1007,10 +1007,6 @@
         <div class="app-container">
             <!-- Fixed Header -->
             <div class="header">
-                <!-- Commit Reference (Debug) -->
-                <div id="commitRef" style="text-align: center; padding: 4px 8px; background: rgba(0, 0, 0, 0.3); font-size: 0.7em; color: rgba(255, 255, 255, 0.5); font-family: monospace; border-bottom: 1px solid rgba(255, 107, 0, 0.2);">
-                    Loading commit info...
-                </div>
                 <div class="header-content">
                     <div class="header-title">
                         <span style="font-size: 1.5em;">🎃</span>
@@ -2112,34 +2108,9 @@
             }
         }
 
-        // Load commit reference info
-        async function loadCommitInfo() {
-            try {
-                const response = await fetch('/api/version');
-                if (response.ok) {
-                    const data = await response.json();
-                    const commitRef = document.getElementById('commitRef');
-                    commitRef.innerHTML = `
-                        <span style="opacity: 0.7;">Build:</span>
-                        <span style="color: #ff6b00; font-weight: 600;">${data.commit}</span>
-                        <span style="opacity: 0.5; margin: 0 6px;">|</span>
-                        <span style="opacity: 0.7;">${data.branch}</span>
-                        <span style="opacity: 0.5; margin: 0 6px;">|</span>
-                        <span style="opacity: 0.6;">${data.environment}</span>
-                    `;
-                } else {
-                    document.getElementById('commitRef').textContent = 'Version info unavailable';
-                }
-            } catch (error) {
-                console.error('Failed to load commit info:', error);
-                document.getElementById('commitRef').textContent = 'Version info unavailable';
-            }
-        }
-
         // Initialize on load
         window.addEventListener('load', () => {
             init();
-            loadCommitInfo();
         });
 
         // Add secret key listener
