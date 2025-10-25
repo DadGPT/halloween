@@ -892,6 +892,52 @@ app.get('/api/timing-status', async (req, res) => {
     }
 });
 
+// Reset timing settings to defaults
+app.post('/api/reset-timing', async (req, res) => {
+    try {
+        console.log('=== Reset Timing Settings Request ===');
+
+        // Default settings
+        const defaultSettings = {
+            enabled: false,
+            votingStart: '2025-10-25T19:00',
+            votingEnd: '2025-10-25T21:00',
+            manualOverride: null
+        };
+
+        if (!database.initialized) {
+            console.error('❌ Database not initialized! Cannot reset timing settings.');
+            return res.status(500).json({
+                error: 'Database not initialized',
+                details: 'Check Supabase credentials configuration'
+            });
+        }
+
+        try {
+            console.log('Resetting timing to defaults...');
+            const savedSettings = await database.updateTimingSettings(defaultSettings);
+            timingSettings = savedSettings;
+            console.log('✅ Timing settings reset successfully');
+
+            res.json({
+                success: true,
+                settings: timingSettings,
+                currentPhase: getCurrentPhase(),
+                message: 'Timing settings reset to defaults'
+            });
+        } catch (dbError) {
+            console.error('❌ Failed to reset timing settings:', dbError);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to reset timing settings: ' + dbError.message
+            });
+        }
+    } catch (error) {
+        console.error('❌ Reset timing error:', error);
+        res.status(500).json({ error: 'Failed to reset timing: ' + error.message });
+    }
+});
+
 // Update timing settings
 app.post('/api/timing-settings', async (req, res) => {
     try {

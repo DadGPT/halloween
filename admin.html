@@ -1062,6 +1062,7 @@
 
                             <div class="action-buttons">
                                 <button class="btn btn-primary btn-full" onclick="saveTimingSettings()">Save Timing Settings</button>
+                                <button class="btn btn-secondary btn-full" onclick="resetTimingSettings()" style="background: rgba(255, 0, 0, 0.2); border: 2px solid rgba(255, 0, 0, 0.4); color: #ff6666;">Reset to Defaults</button>
                             </div>
                         </div>
 
@@ -1911,6 +1912,39 @@
             } catch (error) {
                 console.error('[ADMIN] ❌ Error saving timing settings:', error);
                 showToast('Error saving timing settings: ' + error.message);
+            }
+        }
+
+        async function resetTimingSettings() {
+            if (!confirm('Are you sure you want to reset timing settings to defaults? This will:\n\n• Set enabled = false\n• Reset times to Oct 25, 2025 defaults\n• Clear manual override\n\nThis action will update the database.')) {
+                return;
+            }
+
+            console.log('[ADMIN] Resetting timing settings to defaults...');
+
+            try {
+                const response = await fetch('/api/reset-timing', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+                console.log('[ADMIN] Reset response:', result);
+
+                if (response.ok) {
+                    console.log('[ADMIN] ✅ Timing reset successful');
+                    showToast('✅ Timing settings reset to defaults!');
+
+                    // Reload settings from database
+                    await loadTimingFromAPI();
+                    updateTimingStatus();
+                } else {
+                    console.error('[ADMIN] ❌ Reset failed:', result);
+                    showToast('Error: ' + (result.error || 'Failed to reset timing'));
+                }
+            } catch (error) {
+                console.error('[ADMIN] ❌ Error resetting timing:', error);
+                showToast('Error resetting timing: ' + error.message);
             }
         }
 
