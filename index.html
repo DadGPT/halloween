@@ -1465,13 +1465,24 @@
         }
 
         // Open voting overlay
-        function openVotingOverlay(category) {
+        async function openVotingOverlay(category) {
             currentCategory = category;
             const overlay = document.getElementById('votingOverlay');
             const title = document.getElementById('overlayTitle');
             const grid = document.getElementById('votingGrid');
 
+            // Show loading state
             title.textContent = `${category.emoji} ${category.name}`;
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <div style="margin-top: 10px;">Loading entries...</div>
+                </div>
+            `;
+            overlay.classList.add('active');
+
+            // Reload entries from server to get latest submissions
+            await loadEntries();
 
             // Filter by category type (couple vs all)
             let filteredEntries = entries.filter(category.filter);
@@ -1507,8 +1518,6 @@
                     </div>
                 `).join('');
             }
-
-            overlay.classList.add('active');
         }
 
         // Close voting overlay
