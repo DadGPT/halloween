@@ -155,31 +155,49 @@ function getCurrentPhase() {
         return phases[timingSettings.manualOverride] || phases['closed'];
     }
 
-    // Get current time in Eastern and convert settings times to Eastern
-    const now = getNowInEastern();
-    const votingStart = new Date(timingSettings.votingStart + ':00Z');
-    const votingEnd = new Date(timingSettings.votingEnd + ':00Z');
+    // Get current time in Eastern Time
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    const parts = formatter.formatToParts(now);
+    const dateObj = {};
+    parts.forEach(({ type, value }) => {
+        dateObj[type] = value;
+    });
+    const currentEasternString = `${dateObj.year}-${dateObj.month}-${dateObj.day}T${dateObj.hour}:${dateObj.minute}:${dateObj.second}`;
 
-    console.log('Current time (Eastern as UTC):', now.toISOString());
-    console.log('Voting start:', votingStart.toISOString());
-    console.log('Voting end:', votingEnd.toISOString());
-    console.log('now < votingStart:', now < votingStart);
-    console.log('now >= votingStart && now < votingEnd:', now >= votingStart && now < votingEnd);
-    console.log('now >= votingEnd:', now >= votingEnd);
+    // Database times are in format "2025-10-25T15:36" (Eastern Time)
+    const votingStartString = timingSettings.votingStart + ':00';
+    const votingEndString = timingSettings.votingEnd + ':00';
+
+    console.log('Current Eastern time string:', currentEasternString);
+    console.log('Voting start string:', votingStartString);
+    console.log('Voting end string:', votingEndString);
+    console.log('String comparison - now < votingStart:', currentEasternString < votingStartString);
+    console.log('String comparison - now >= votingStart:', currentEasternString >= votingStartString);
+    console.log('String comparison - now < votingEnd:', currentEasternString < votingEndString);
 
     // Before voting period = pre-show (uploads allowed, voting disabled)
-    if (now < votingStart) {
-        console.log('RESULT: preshow phase');
+    if (currentEasternString < votingStartString) {
+        console.log('RESULT: preshow phase (before voting start)');
         return { phase: 'preshow', canVote: false, canUpload: true };
     }
     // During voting period = voting active (uploads and voting allowed)
-    else if (now >= votingStart && now < votingEnd) {
-        console.log('RESULT: voting phase');
+    else if (currentEasternString >= votingStartString && currentEasternString < votingEndString) {
+        console.log('RESULT: voting phase (during voting period)');
         return { phase: 'voting', canVote: true, canUpload: true };
     }
     // After voting period = closed (no uploads, no voting)
     else {
-        console.log('RESULT: closed phase');
+        console.log('RESULT: closed phase (after voting end)');
         return { phase: 'closed', canVote: false, canUpload: false };
     }
 }
