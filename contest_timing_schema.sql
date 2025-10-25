@@ -4,12 +4,8 @@
 CREATE TABLE IF NOT EXISTS contest_timing (
     id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- Enforce singleton pattern
     enabled BOOLEAN NOT NULL DEFAULT false,
-    pre_show_start TEXT NOT NULL DEFAULT '2025-10-25T18:30',
-    pre_show_end TEXT NOT NULL DEFAULT '2025-10-25T19:45',
-    voting_start TEXT NOT NULL DEFAULT '2025-10-25T19:45',
-    voting_end TEXT NOT NULL DEFAULT '2025-10-25T20:15',
-    post_voting_start TEXT NOT NULL DEFAULT '2025-10-25T20:15',
-    results_time TEXT NOT NULL DEFAULT '2025-10-25T20:30',
+    voting_start TEXT NOT NULL DEFAULT '2025-10-25T19:00',
+    voting_end TEXT NOT NULL DEFAULT '2025-10-25T21:00',
     manual_override TEXT DEFAULT NULL, -- Can be 'preshow', 'voting', 'closed', or NULL
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -13,12 +13,8 @@ Copy and paste the entire contents of `contest_timing_schema.sql` into your Supa
 CREATE TABLE IF NOT EXISTS contest_timing (
     id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- Enforce singleton pattern
     enabled BOOLEAN NOT NULL DEFAULT false,
-    pre_show_start TEXT NOT NULL DEFAULT '2025-10-25T18:30',
-    pre_show_end TEXT NOT NULL DEFAULT '2025-10-25T19:45',
-    voting_start TEXT NOT NULL DEFAULT '2025-10-25T19:45',
-    voting_end TEXT NOT NULL DEFAULT '2025-10-25T20:15',
-    post_voting_start TEXT NOT NULL DEFAULT '2025-10-25T20:15',
-    results_time TEXT NOT NULL DEFAULT '2025-10-25T20:30',
+    voting_start TEXT NOT NULL DEFAULT '2025-10-25T19:00',
+    voting_end TEXT NOT NULL DEFAULT '2025-10-25T21:00',
     manual_override TEXT DEFAULT NULL, -- Can be 'preshow', 'voting', 'closed', or NULL
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -76,21 +72,32 @@ COMMENT ON TABLE contest_timing IS 'Global timing settings for the Halloween con
 - **Columns**:
   - `id` - Always 1 (enforced by CHECK constraint)
   - `enabled` - Boolean for timing on/off
-  - `pre_show_start`, `pre_show_end` - Upload-only period times
-  - `voting_start`, `voting_end` - Active voting period times
-  - `post_voting_start`, `results_time` - Results period times
+  - `voting_start` - When voting period starts (before this = pre-show)
+  - `voting_end` - When voting period ends (after this = closed)
   - `manual_override` - Manual phase override (preshow/voting/closed/null)
   - `updated_at` - Auto-updated timestamp
 
 - **Policies**: Public read access, public update access (admin is PIN-protected in app)
 
+- **How Timing Works**:
+  - **Before voting_start**: Pre-show period (uploads allowed, voting disabled)
+  - **During voting_start to voting_end**: Active voting (uploads and voting allowed)
+  - **After voting_end**: Contest closed (no uploads or voting)
+
 ## Verify It Worked
 
 After running the SQL, you should see:
 - `contest_timing` table in your Tables list
-- 1 row with default values (enabled: false, dates: 2025-10-25)
+- 1 row with default values (enabled: false, voting_start: 2025-10-25T19:00, voting_end: 2025-10-25T21:00)
 
 You can verify by running:
 ```sql
 SELECT * FROM contest_timing;
+```
+
+Expected result:
+```
+id | enabled | voting_start        | voting_end          | manual_override | updated_at
+---+---------+--------------------+--------------------+-----------------+------------
+ 1 | false   | 2025-10-25T19:00   | 2025-10-25T21:00   | null            | [timestamp]
 ```

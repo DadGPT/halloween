@@ -71,12 +71,8 @@ const upload = multer({
 // Timing settings storage - loaded from database
 let timingSettings = {
     enabled: false,
-    preShowStart: '2025-10-25T18:30',
-    preShowEnd: '2025-10-25T19:45',
-    votingStart: '2025-10-25T19:45',
-    votingEnd: '2025-10-25T20:15',
-    postVotingStart: '2025-10-25T20:15',
-    resultsTime: '2025-10-25T20:30',
+    votingStart: '2025-10-25T19:00',
+    votingEnd: '2025-10-25T21:00',
     manualOverride: null
 };
 
@@ -150,23 +146,20 @@ function getCurrentPhase() {
 
     // Get current time in Eastern and convert settings times to Eastern
     const now = getNowInEastern();
-    const preShowStart = new Date(timingSettings.preShowStart + ':00Z');
-    const preShowEnd = new Date(timingSettings.preShowEnd + ':00Z');
     const votingStart = new Date(timingSettings.votingStart + ':00Z');
     const votingEnd = new Date(timingSettings.votingEnd + ':00Z');
-    const postVotingStart = new Date(timingSettings.postVotingStart + ':00Z');
-    const resultsTime = new Date(timingSettings.resultsTime + ':00Z');
 
-    if (now < preShowStart) {
-        return { phase: 'beforeshow', canVote: false, canUpload: false };
-    } else if (now >= preShowStart && now < preShowEnd) {
+    // Before voting period = pre-show (uploads allowed, voting disabled)
+    if (now < votingStart) {
         return { phase: 'preshow', canVote: false, canUpload: true };
-    } else if (now >= votingStart && now < votingEnd) {
+    }
+    // During voting period = voting active (uploads and voting allowed)
+    else if (now >= votingStart && now < votingEnd) {
         return { phase: 'voting', canVote: true, canUpload: true };
-    } else if (now >= postVotingStart && now < resultsTime) {
+    }
+    // After voting period = closed (no uploads, no voting)
+    else {
         return { phase: 'closed', canVote: false, canUpload: false };
-    } else {
-        return { phase: 'results', canVote: false, canUpload: false };
     }
 }
 
@@ -844,27 +837,19 @@ app.post('/api/timing-settings', async (req, res) => {
 
         // Validate required fields if enabled
         if (newSettings.enabled) {
-            const requiredFields = ['preShowStart', 'preShowEnd', 'votingStart', 'votingEnd', 'postVotingStart', 'resultsTime'];
+            const requiredFields = ['votingStart', 'votingEnd'];
             for (const field of requiredFields) {
                 if (!newSettings[field]) {
                     return res.status(400).json({ error: `Missing required field: ${field}` });
                 }
             }
 
-            // Validate time order
-            const times = [
-                new Date(newSettings.preShowStart + ':00Z'),
-                new Date(newSettings.preShowEnd + ':00Z'),
-                new Date(newSettings.votingStart + ':00Z'),
-                new Date(newSettings.votingEnd + ':00Z'),
-                new Date(newSettings.postVotingStart + ':00Z'),
-                new Date(newSettings.resultsTime + ':00Z')
-            ];
+            // Validate time order (voting start must be before voting end)
+            const votingStart = new Date(newSettings.votingStart + ':00Z');
+            const votingEnd = new Date(newSettings.votingEnd + ':00Z');
 
-            for (let i = 0; i < times.length - 1; i++) {
-                if (times[i] >= times[i + 1]) {
-                    return res.status(400).json({ error: 'Times must be in chronological order' });
-                }
+            if (votingStart >= votingEnd) {
+                return res.status(400).json({ error: 'Voting start time must be before voting end time' });
             }
         }
 

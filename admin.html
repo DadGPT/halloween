@@ -1042,53 +1042,21 @@
 
                         <div id="timingSettings" style="display: none;">
                             <div class="form-group">
-                                <label>Pre-Show Period (Upload Only)</label>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time (ET)</label>
-                                        <input type="datetime-local" id="preShowStart" value="2025-10-25T18:30">
-                                    </div>
-                                    <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">End Time (ET)</label>
-                                        <input type="datetime-local" id="preShowEnd" value="2025-10-25T19:45">
-                                    </div>
-                                </div>
-                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
-                                    Guests can upload costumes but cannot vote
-                                </div>
-                            </div>
-
-                            <div class="form-group">
                                 <label>Voting Period</label>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <div>
                                         <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time (ET)</label>
-                                        <input type="datetime-local" id="votingStart" value="2025-10-25T19:45">
+                                        <input type="datetime-local" id="votingStart" value="2025-10-25T19:00">
                                     </div>
                                     <div>
                                         <label style="font-size: 0.9em; margin-bottom: 5px;">End Time (ET)</label>
-                                        <input type="datetime-local" id="votingEnd" value="2025-10-25T20:15">
+                                        <input type="datetime-local" id="votingEnd" value="2025-10-25T21:00">
                                     </div>
                                 </div>
                                 <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
-                                    Active voting period for all categories
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Post-Voting Period (Results)</label>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Start Time (ET)</label>
-                                        <input type="datetime-local" id="postVotingStart" value="2025-10-25T20:15">
-                                    </div>
-                                    <div>
-                                        <label style="font-size: 0.9em; margin-bottom: 5px;">Results Time (ET)</label>
-                                        <input type="datetime-local" id="resultsTime" value="2025-10-25T20:30">
-                                    </div>
-                                </div>
-                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85em; margin-top: 5px;">
-                                    Voting closed, preparing for winners announcement
+                                    <strong>Before:</strong> Pre-show period (uploads allowed, voting disabled)<br>
+                                    <strong>During:</strong> Active voting period (uploads and voting allowed)<br>
+                                    <strong>After:</strong> Contest closed (no uploads or voting)
                                 </div>
                             </div>
 
@@ -1827,12 +1795,8 @@
         // Timing Management Functions
         let timingSettings = {
             enabled: false,
-            preShowStart: '2025-10-25T18:30',
-            preShowEnd: '2025-10-25T19:45',
-            votingStart: '2025-10-25T19:45',
-            votingEnd: '2025-10-25T20:15',
-            postVotingStart: '2025-10-25T20:15',
-            resultsTime: '2025-10-25T20:30',
+            votingStart: '2025-10-25T19:00',
+            votingEnd: '2025-10-25T21:00',
             manualOverride: null // 'preshow', 'voting', 'closed', or null for auto
         };
 
@@ -1900,28 +1864,16 @@
             if (!timingSettings.enabled) return;
 
             // Get values from form
-            timingSettings.preShowStart = document.getElementById('preShowStart').value;
-            timingSettings.preShowEnd = document.getElementById('preShowEnd').value;
             timingSettings.votingStart = document.getElementById('votingStart').value;
             timingSettings.votingEnd = document.getElementById('votingEnd').value;
-            timingSettings.postVotingStart = document.getElementById('postVotingStart').value;
-            timingSettings.resultsTime = document.getElementById('resultsTime').value;
 
-            // Validate times
-            const times = [
-                new Date(timingSettings.preShowStart),
-                new Date(timingSettings.preShowEnd),
-                new Date(timingSettings.votingStart),
-                new Date(timingSettings.votingEnd),
-                new Date(timingSettings.postVotingStart),
-                new Date(timingSettings.resultsTime)
-            ];
+            // Validate times (voting start must be before voting end)
+            const votingStart = new Date(timingSettings.votingStart);
+            const votingEnd = new Date(timingSettings.votingEnd);
 
-            for (let i = 0; i < times.length - 1; i++) {
-                if (times[i] >= times[i + 1]) {
-                    showToast('Error: Times must be in chronological order!');
-                    return;
-                }
+            if (votingStart >= votingEnd) {
+                showToast('Error: Voting start time must be before voting end time!');
+                return;
             }
 
             // Save to server
@@ -1954,12 +1906,8 @@
 
                     // Update form fields
                     document.getElementById('timingMode').value = timingSettings.enabled ? 'enabled' : 'disabled';
-                    document.getElementById('preShowStart').value = timingSettings.preShowStart;
-                    document.getElementById('preShowEnd').value = timingSettings.preShowEnd;
                     document.getElementById('votingStart').value = timingSettings.votingStart;
                     document.getElementById('votingEnd').value = timingSettings.votingEnd;
-                    document.getElementById('postVotingStart').value = timingSettings.postVotingStart;
-                    document.getElementById('resultsTime').value = timingSettings.resultsTime;
 
                     toggleTimingSettings();
                     console.log('Timing settings loaded from database:', timingSettings);
@@ -2039,46 +1987,33 @@
 
             // Get current time in Eastern and convert settings times to Eastern for comparison
             const now = getNowInEastern();
-            const preShowStart = new Date(timingSettings.preShowStart + ':00Z');
-            const preShowEnd = new Date(timingSettings.preShowEnd + ':00Z');
             const votingStart = new Date(timingSettings.votingStart + ':00Z');
             const votingEnd = new Date(timingSettings.votingEnd + ':00Z');
-            const postVotingStart = new Date(timingSettings.postVotingStart + ':00Z');
-            const resultsTime = new Date(timingSettings.resultsTime + ':00Z');
 
-            if (now < preShowStart) {
-                return {
-                    phase: 'beforeshow',
-                    message: 'Contest not yet started',
-                    icon: '⏰',
-                    next: `Pre-show starts ${formatEasternTime(preShowStart)}`
-                };
-            } else if (now >= preShowStart && now < preShowEnd) {
+            // Before voting period = pre-show
+            if (now < votingStart) {
                 return {
                     phase: 'preshow',
-                    message: 'Pre-show period - Upload costumes only',
+                    message: 'Pre-show period - Uploads allowed, voting disabled',
                     icon: '🎭',
                     next: `Voting starts ${formatEasternTime(votingStart)}`
                 };
-            } else if (now >= votingStart && now < votingEnd) {
+            }
+            // During voting period = voting active
+            else if (now >= votingStart && now < votingEnd) {
                 return {
                     phase: 'voting',
                     message: 'Voting is ACTIVE!',
                     icon: '🗳️',
                     next: `Voting ends ${formatEasternTime(votingEnd)}`
                 };
-            } else if (now >= postVotingStart && now < resultsTime) {
+            }
+            // After voting period = closed
+            else {
                 return {
                     phase: 'closed',
-                    message: 'Voting closed - Preparing results',
+                    message: 'Contest closed - No uploads or voting allowed',
                     icon: '🔒',
-                    next: `Results announced ${formatEasternTime(resultsTime)}`
-                };
-            } else {
-                return {
-                    phase: 'results',
-                    message: 'Contest complete - Results announced!',
-                    icon: '🏆',
                     next: ''
                 };
             }

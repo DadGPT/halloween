@@ -456,12 +456,8 @@ class DatabaseService {
             // Convert snake_case to camelCase for JavaScript
             return {
                 enabled: data.enabled,
-                preShowStart: data.pre_show_start,
-                preShowEnd: data.pre_show_end,
                 votingStart: data.voting_start,
                 votingEnd: data.voting_end,
-                postVotingStart: data.post_voting_start,
-                resultsTime: data.results_time,
                 manualOverride: data.manual_override
             };
         } catch (error) {
@@ -481,12 +477,8 @@ class DatabaseService {
             // Convert camelCase to snake_case for database
             const dbSettings = {
                 enabled: settings.enabled,
-                pre_show_start: settings.preShowStart,
-                pre_show_end: settings.preShowEnd,
                 voting_start: settings.votingStart,
                 voting_end: settings.votingEnd,
-                post_voting_start: settings.postVotingStart,
-                results_time: settings.resultsTime,
                 manual_override: settings.manualOverride
             };
 
@@ -506,12 +498,8 @@ class DatabaseService {
             // Convert back to camelCase for response
             return {
                 enabled: data.enabled,
-                preShowStart: data.pre_show_start,
-                preShowEnd: data.pre_show_end,
                 votingStart: data.voting_start,
                 votingEnd: data.voting_end,
-                postVotingStart: data.post_voting_start,
-                resultsTime: data.results_time,
                 manualOverride: data.manual_override
             };
         } catch (error) {
