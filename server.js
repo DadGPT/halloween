@@ -131,11 +131,16 @@ function getNowInEastern() {
 }
 
 function getCurrentPhase() {
+    console.log('=== getCurrentPhase() Debug ===');
+    console.log('timingSettings:', JSON.stringify(timingSettings, null, 2));
+
     if (!timingSettings.enabled) {
+        console.log('Timing is DISABLED - returning disabled phase');
         return { phase: 'disabled', canVote: true, canUpload: true };
     }
 
     if (timingSettings.manualOverride) {
+        console.log('Manual override active:', timingSettings.manualOverride);
         const phases = {
             'preshow': { phase: 'preshow', canVote: false, canUpload: true },
             'voting': { phase: 'voting', canVote: true, canUpload: true },
@@ -149,16 +154,26 @@ function getCurrentPhase() {
     const votingStart = new Date(timingSettings.votingStart + ':00Z');
     const votingEnd = new Date(timingSettings.votingEnd + ':00Z');
 
+    console.log('Current time (Eastern as UTC):', now.toISOString());
+    console.log('Voting start:', votingStart.toISOString());
+    console.log('Voting end:', votingEnd.toISOString());
+    console.log('now < votingStart:', now < votingStart);
+    console.log('now >= votingStart && now < votingEnd:', now >= votingStart && now < votingEnd);
+    console.log('now >= votingEnd:', now >= votingEnd);
+
     // Before voting period = pre-show (uploads allowed, voting disabled)
     if (now < votingStart) {
+        console.log('RESULT: preshow phase');
         return { phase: 'preshow', canVote: false, canUpload: true };
     }
     // During voting period = voting active (uploads and voting allowed)
     else if (now >= votingStart && now < votingEnd) {
+        console.log('RESULT: voting phase');
         return { phase: 'voting', canVote: true, canUpload: true };
     }
     // After voting period = closed (no uploads, no voting)
     else {
+        console.log('RESULT: closed phase');
         return { phase: 'closed', canVote: false, canUpload: false };
     }
 }
@@ -185,7 +200,17 @@ app.get('/welcome', (req, res) => {
     res.sendFile(path.join(__dirname, 'welcome.html'));
 });
 
-app.get('/vote', (req, res) => {
+app.get('/vote', async (req, res) => {
+    // Reload timing settings from database to ensure we have latest values
+    // This is critical in serverless environments where each request may hit a different instance
+    if (database.initialized) {
+        try {
+            await loadTimingSettings();
+        } catch (err) {
+            console.warn('Failed to reload timing settings, using cached values:', err.message);
+        }
+    }
+
     // Check current phase and redirect if necessary
     const currentPhase = getCurrentPhase();
 
@@ -356,6 +381,15 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
         console.log('Headers:', req.headers);
         console.log('Body:', req.body);
         console.log('File present:', !!req.file);
+
+        // Reload timing settings from database to ensure we have latest values
+        if (database.initialized) {
+            try {
+                await loadTimingSettings();
+            } catch (err) {
+                console.warn('Failed to reload timing settings, using cached values:', err.message);
+            }
+        }
 
         // Check timing permissions
         const currentPhase = getCurrentPhase();
@@ -557,6 +591,15 @@ app.use('/uploads', express.static(uploadsDir));
 // Vote for an entry
 app.post('/api/vote', async (req, res) => {
     try {
+        // Reload timing settings from database to ensure we have latest values
+        if (database.initialized) {
+            try {
+                await loadTimingSettings();
+            } catch (err) {
+                console.warn('Failed to reload timing settings, using cached values:', err.message);
+            }
+        }
+
         // Check timing permissions
         const currentPhase = getCurrentPhase();
         if (!currentPhase.canVote) {
@@ -684,6 +727,15 @@ app.get('/api/voter-votes/:voterId', async (req, res) => {
 // Submit a vote (for costume_votes table)
 app.post('/api/submit-vote', async (req, res) => {
     try {
+        // Reload timing settings from database to ensure we have latest values
+        if (database.initialized) {
+            try {
+                await loadTimingSettings();
+            } catch (err) {
+                console.warn('Failed to reload timing settings, using cached values:', err.message);
+            }
+        }
+
         // Check timing permissions
         const currentPhase = getCurrentPhase();
         if (!currentPhase.canVote) {
@@ -817,8 +869,18 @@ app.get('/api/vote-stats', async (req, res) => {
 // Timing settings endpoints
 
 // Get current timing settings and phase
-app.get('/api/timing-status', (req, res) => {
+app.get('/api/timing-status', async (req, res) => {
     try {
+        // Reload timing settings from database to ensure we have latest values
+        // This is important in serverless environments where instances may have stale data
+        if (database.initialized) {
+            try {
+                await loadTimingSettings();
+            } catch (err) {
+                console.warn('Failed to reload timing settings, using cached values:', err.message);
+            }
+        }
+
         const currentPhase = getCurrentPhase();
         res.json({
             settings: timingSettings,
