@@ -536,6 +536,7 @@
 
         // Check current status
         async function checkStatus() {
+            console.log('[PRESHOW] Checking status at:', new Date().toLocaleTimeString());
             try {
                 const response = await fetch('/api/timing-status');
                 const data = await response.json();
@@ -551,12 +552,16 @@
             }
         }
 
-        // Auto-refresh status every 60 seconds (1 minute)
+        // Auto-refresh status every 60 seconds (1 minute) - 60000ms = 60 seconds
+        console.log('[PRESHOW] Setting up status check interval: every 60 seconds');
         setInterval(checkStatus, 60000);
 
         // Update countdown every second
         setInterval(updateCountdown, 1000);
         updateCountdown();
+
+        // Initial status check on page load
+        checkStatus();
     </script>
 </body>
 </html>
