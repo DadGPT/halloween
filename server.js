@@ -78,21 +78,27 @@ let timingSettings = {
 
 // Load timing settings from database
 async function loadTimingSettings() {
+    console.log('=== loadTimingSettings() called ===');
     try {
         const settings = await database.getTimingSettings();
         timingSettings = settings;
-        console.log('Timing settings loaded from database:', timingSettings);
+        console.log('✅ Timing settings loaded from database:', JSON.stringify(timingSettings, null, 2));
     } catch (error) {
-        console.error('Failed to load timing settings from database:', error.message);
-        console.warn('Using default timing settings');
+        console.error('❌ Failed to load timing settings from database:', error.message);
+        console.warn('⚠️  Using default timing settings:', JSON.stringify(timingSettings, null, 2));
     }
 }
 
 // Initialize timing settings on startup
+console.log('=== Server Startup: Initializing Timing Settings ===');
+console.log('Database initialized:', database.initialized);
 if (database.initialized) {
     loadTimingSettings().catch(err => {
-        console.error('Error during timing settings initialization:', err);
+        console.error('❌ Error during timing settings initialization:', err);
     });
+} else {
+    console.warn('⚠️  Database not initialized - using default timing settings');
+    console.warn('Default settings:', JSON.stringify(timingSettings, null, 2));
 }
 
 // Timing helper functions
@@ -201,26 +207,35 @@ app.get('/welcome', (req, res) => {
 });
 
 app.get('/vote', async (req, res) => {
+    console.log('=== /vote route accessed ===');
+
     // Reload timing settings from database to ensure we have latest values
     // This is critical in serverless environments where each request may hit a different instance
     if (database.initialized) {
         try {
             await loadTimingSettings();
+            console.log('Timing settings reloaded successfully');
         } catch (err) {
             console.warn('Failed to reload timing settings, using cached values:', err.message);
         }
+    } else {
+        console.warn('Database not initialized - cannot reload timing settings');
     }
 
     // Check current phase and redirect if necessary
     const currentPhase = getCurrentPhase();
+    console.log('Current phase determined:', currentPhase.phase);
 
     if (currentPhase.phase === 'beforeshow' || currentPhase.phase === 'preshow') {
+        console.log('❌ Redirecting to /preshow - voting not started yet');
         return res.redirect('/preshow');
     } else if (currentPhase.phase === 'closed' || currentPhase.phase === 'results') {
+        console.log('❌ Redirecting to /voting-closed - voting has ended');
         return res.redirect('/voting-closed');
     }
 
     // If voting is allowed or timing is disabled, show voting page
+    console.log('✅ Showing voting page - voting is active or timing is disabled');
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
