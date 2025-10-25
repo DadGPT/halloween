@@ -1389,14 +1389,17 @@
 
             // Further filter out entries already voted for in other categories
             // BUT keep the current vote for this category if it exists
-            filteredEntries = filteredEntries.filter(entry => {
-                // Always show if it's the current vote for this category
-                if (votes[category.id] === entry.id) {
-                    return true;
-                }
-                // Hide if already voted for in another category
-                return !hasVotedForEntryInOtherCategory(entry.id, category.id);
-            });
+            // EXCEPT for "overall" category which should show all entries
+            if (category.id !== 'overall') {
+                filteredEntries = filteredEntries.filter(entry => {
+                    // Always show if it's the current vote for this category
+                    if (votes[category.id] === entry.id) {
+                        return true;
+                    }
+                    // Hide if already voted for in another category
+                    return !hasVotedForEntryInOtherCategory(entry.id, category.id);
+                });
+            }
 
             if (filteredEntries.length === 0) {
                 grid.innerHTML = `
@@ -1450,7 +1453,8 @@
                     }
                 } else {
                     // Check if this entry is already voted for in another category
-                    if (hasVotedForEntryInOtherCategory(entryId, currentCategory.id)) {
+                    // EXCEPT for "overall" category which allows voting for anyone
+                    if (currentCategory.id !== 'overall' && hasVotedForEntryInOtherCategory(entryId, currentCategory.id)) {
                         showToast('You already voted for this costume in another category!');
                         return;
                     }
