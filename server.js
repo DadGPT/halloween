@@ -38,18 +38,8 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(express.static('.'));
 
-// 🔒 CONTEST LOCKDOWN - Redirect all routes to thanks page
-// The contest has ended - show "Thanks for playing" to everyone
-app.use((req, res, next) => {
-    // Allow access to the thanks page itself
-    if (req.path === '/thanks' || req.path === '/thanks.html') {
-        return next();
-    }
-
-    // Redirect everything else to thanks page
-    console.log(`🔒 Contest ended - redirecting ${req.path} to /thanks`);
-    return res.redirect('/thanks');
-});
+// 🔒 CONTEST LOCKDOWN - index.html has been replaced with thanks page
+// All routes now show "Thanks for playing" message
 
 // Create uploads directory if it doesn't exist
 // In serverless environments (like Vercel), use /tmp for writable storage
