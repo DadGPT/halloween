@@ -42,8 +42,8 @@ Express app in the repo root.
 | 0 | Scaffold, design system, data layer, schema | ✅ done |
 | 0 | Landing page | ✅ done |
 | 1 | Costume entry (camera-first, compress, upload) | ✅ done |
-| 2 | Vote gallery (swipe-to-vote) + reactions | ▢ next |
-| 3 | Party Mode `/live` (Realtime tallies + winner reveal) | ▢ |
+| 2 | Vote gallery + costume detail + reactions | ✅ done |
+| 3 | Party Mode `/live` (Realtime tallies + winner reveal) | ▢ next |
 | 4 | Host `/admin` (phase control, moderation, reveal) | ▢ |
 | 5 | PWA + offline queue, image polish, dry-run | ▢ |
 | — | QR-at-door tokens | ▢ later (optional) |
@@ -63,4 +63,6 @@ To run locally: `npm run dev` (from `halloween2026/`).
 
 - `/` landing · `/enter` costume entry · `/vote` gallery (placeholder)
 - `/live` Party Mode (placeholder) · `/admin` host (placeholder)
-- `GET /api/state` phase + settings + categories · `POST /api/entries` create entry
+- `GET /api/state` phase/settings/categories · `GET|POST /api/entries` list/create
+- `GET /api/my?device_id=` this device's ballot · `POST|DELETE /api/vote` cast/clear
+- `POST /api/react` toggle reaction

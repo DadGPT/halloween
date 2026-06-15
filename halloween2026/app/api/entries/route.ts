@@ -2,6 +2,27 @@ import { NextResponse } from "next/server";
 import { createRouteClient } from "@/lib/supabase/route";
 import { BUCKET } from "@/lib/constants";
 
+export const dynamic = "force-dynamic";
+
+// List all entries with their reaction counts (vote gallery + /live).
+export async function GET() {
+  const supabase = createRouteClient();
+  const [entriesRes, reactionsRes] = await Promise.all([
+    supabase.from("entries").select("*").order("created_at", { ascending: true }),
+    supabase.from("entry_reaction_counts").select("*"),
+  ]);
+
+  const rmap: Record<string, Record<string, number>> = {};
+  for (const r of reactionsRes.data ?? []) {
+    (rmap[r.entry_id] ??= {})[r.emoji] = r.count;
+  }
+  const entries = (entriesRes.data ?? []).map((e) => ({
+    ...e,
+    reactions: rmap[e.id] ?? {},
+  }));
+  return NextResponse.json({ entries });
+}
+
 // Create a costume entry: upload the (already client-compressed) photo to
 // Supabase Storage, then insert the row. Phase ('closed' blocks) is enforced
 // by a DB trigger. Service role is used so this is the single write path.
