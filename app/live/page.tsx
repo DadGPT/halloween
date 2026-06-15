@@ -71,7 +71,7 @@ export default function LivePage() {
         ) : data.phase === "closed" ? (
           <Tallying key="tally" />
         ) : data.phase === "voting" ? (
-          <Leaderboard key="board" data={data} />
+          <Showcase key="board" data={data} />
         ) : (
           <Preshow key="pre" data={data} />
         )}
@@ -152,70 +152,143 @@ function Preshow({ data }: { data: Results }) {
   );
 }
 
-function Leaderboard({ data }: { data: Results }) {
+// Engagement copy for the voting "showcase" — deliberately NON-specific and
+// fabricated. We advertise that things are happening without revealing real
+// tallies (the host wants suspense, not a live scoreboard).
+const HYPE_ACTIONS = [
+  "A vote just came in",
+  "Someone cast their vote",
+  "Another vote just landed",
+  "The votes are rolling in",
+  "Someone dropped a reaction",
+  "A new favorite is emerging",
+  "The competition is heating up",
+];
+
+function randomHype(categories: Category[]) {
+  if (categories.length && Math.random() < 0.5) {
+    const c = categories[Math.floor(Math.random() * categories.length)];
+    const t = [
+      `A ${c.label} vote just happened`,
+      `Someone voted for ${c.label}`,
+      `${c.label} is heating up`,
+    ];
+    return t[Math.floor(Math.random() * t.length)];
+  }
+  return HYPE_ACTIONS[Math.floor(Math.random() * HYPE_ACTIONS.length)];
+}
+
+function Showcase({ data }: { data: Results }) {
+  const entries = data.entries;
+  const [idx, setIdx] = useState(0);
+  const [hype, setHype] = useState(() => ({
+    key: 0,
+    text: randomHype(data.categories),
+  }));
+
+  // Cycle through costume photos.
+  useEffect(() => {
+    if (entries.length < 2) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % entries.length), 4500);
+    return () => clearInterval(t);
+  }, [entries.length]);
+
+  // Fabricated, non-specific engagement ticker (NOT real votes).
+  useEffect(() => {
+    const t = setInterval(
+      () =>
+        setHype((h) => ({ key: h.key + 1, text: randomHype(data.categories) })),
+      2800,
+    );
+    return () => clearInterval(t);
+  }, [data.categories]);
+
+  if (entries.length === 0) {
+    return (
+      <Stage>
+        <header className="flex items-center justify-between">
+          <LiveBadge />
+          <span className="text-sm uppercase tracking-[0.28em] text-parchment-dim">
+            Halloween 2026
+          </span>
+        </header>
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <h1 className="font-display text-[7vw] font-semibold text-parchment">
+            Voting is live
+          </h1>
+          <p className="mt-4 text-2xl text-parchment-dim">
+            Costumes are coming in…
+          </p>
+        </div>
+      </Stage>
+    );
+  }
+
+  const entry = entries[idx % entries.length];
   return (
     <Stage>
       <header className="flex items-center justify-between">
         <LiveBadge />
-        <p className="text-xl text-parchment-dim">
-          <span className="font-semibold text-parchment">{data.totals.votes}</span>{" "}
-          votes cast
-        </p>
+        <span className="text-xl text-parchment-dim">Voting is open</span>
       </header>
-      <h1 className="font-display mt-2 text-[5vw] font-semibold leading-tight text-parchment">
-        Standings
-      </h1>
-      <div className="mt-[3vh] grid flex-1 grid-cols-2 gap-[2vw] lg:grid-cols-3">
-        {data.categories.map((c) => {
-          const ranked = data.byCategory[c.id] ?? [];
-          const leader = ranked[0];
-          const max = leader?.votes || 1;
-          return (
-            <div
-              key={c.id}
-              className="flex flex-col rounded-card hairline bg-night-700/60 p-[1.6vw]"
+
+      <div className="relative flex flex-1 flex-col items-center justify-center">
+        {/* Fabricated engagement pill */}
+        <div className="absolute top-0 z-10 flex w-full justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={hype.key}
+              initial={{ opacity: 0, y: -14, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.4, ease }}
+              className="flex items-center gap-3 rounded-full bg-ember-500/15 px-6 py-3 text-xl font-medium text-ember-300 ring-1 ring-ember-400/40"
             >
-              <div className="flex items-center gap-2 text-parchment-dim">
-                <CategoryIcon name={c.icon} className="size-5 text-ember-300" />
-                <span className="text-lg font-medium">{c.label}</span>
-              </div>
-              {leader ? (
-                <div className="mt-auto pt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl bg-night-800">
-                      {leader.entry.photo_url && (
-                        <Image
-                          src={leader.entry.photo_url}
-                          alt={leader.entry.name}
-                          fill
-                          sizes="64px"
-                          className="object-cover"
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-xl font-semibold text-parchment">
-                        {leader.entry.name}
-                      </p>
-                      <p className="text-parchment-dim">
-                        {leader.votes} {leader.votes === 1 ? "vote" : "votes"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-night-800">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-ember-500 to-ember-400"
-                      animate={{ width: `${(leader.votes / max) * 100}%` }}
-                      transition={{ duration: 0.6, ease }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-auto pt-4 text-parchment-dim">No votes yet</p>
+              <motion.span
+                animate={{ scale: [1, 1.35, 1] }}
+                transition={{ duration: 0.6 }}
+                className="text-2xl"
+              >
+                ✨
+              </motion.span>
+              {hype.text}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Rotating costume spotlight */}
+        <div className="relative aspect-[3/4] h-[58vh] max-w-full overflow-hidden rounded-[2rem] bg-night-800 shadow-lift">
+          <AnimatePresence>
+            <motion.div
+              key={entry.id}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.9, ease }}
+              className="absolute inset-0"
+            >
+              {entry.photo_url && (
+                <Image
+                  src={entry.photo_url}
+                  alt={entry.name}
+                  fill
+                  sizes="58vh"
+                  className="object-cover"
+                  priority
+                />
               )}
-            </div>
-          );
-        })}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-night-900 via-night-900/40 to-transparent p-6 pt-20">
+                <p className="font-display text-4xl font-semibold text-parchment">
+                  {entry.name}
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <p className="mt-[3vh] text-xl text-parchment-dim">
+          Cast your votes on your phone
+        </p>
       </div>
     </Stage>
   );

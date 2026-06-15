@@ -380,14 +380,10 @@ function CostumeDetail({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 40, opacity: 0 }}
         transition={{ duration: 0.3, ease }}
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.25}
-        onDragEnd={(_, info) => info.offset.y > 120 && onClose()}
         onClick={(e) => e.stopPropagation()}
-        className="relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-night-800 hairline sm:rounded-3xl"
+        className="relative max-h-[92vh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-3xl bg-night-800 hairline sm:rounded-3xl"
       >
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-3xl bg-night-900">
+        <div className="relative aspect-[4/5] max-h-[50vh] w-full overflow-hidden rounded-t-3xl bg-night-900">
           {entry.photo_url && (
             <Image
               src={entry.photo_url}
