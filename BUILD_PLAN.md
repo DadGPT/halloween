@@ -1,8 +1,9 @@
 # Halloween 2026 — Costume Contest (Rebuild)
 
 A ground-up rebuild of the costume-contest app for reuse at Halloween 2026.
-Premium, frictionless, photography-forward. Replaces the legacy vanilla-HTML +
-Express app in the repo root.
+Premium, frictionless, photography-forward. This Next.js app now lives at the
+repo root; the legacy vanilla-HTML + Express app was removed (recoverable in
+git history before commit `8f72b37`'s parent).
 
 ## Stack
 
@@ -52,18 +53,27 @@ Express app in the repo root.
 ## Backend (provisioned + verified)
 
 Supabase project **`halloween-contest-2026`** (ref `bmvhcfrxosgvdipdkomb`,
-us-east-1, Nonfiction Agency org, $10/mo). Migrations `0001` + `0002` applied;
-public `costumes` bucket created. Verified live: `/api/state` reads the DB,
-`POST /api/entries` uploads to Storage + inserts, photo is publicly readable,
-and the phase trigger blocks votes during preshow. `.env.local` holds the
-project URL + publishable key (gitignored).
+us-east-1, Nonfiction Agency org, $10/mo). Migrations `0001`–`0003` applied;
+public `costumes` bucket created. Fully verified live (uploads, voting,
+self-vote block, reactions, results ranking, Realtime, all admin actions).
 
-To run locally: `npm run dev` (from `halloween2026/`).
+The public Supabase URL + publishable key are committed as fallbacks in
+`lib/supabase/env.ts` (safe — they ship to the browser and are RLS-protected),
+so **the Vercel deploy is zero-config**. Override via `NEXT_PUBLIC_*` env vars.
+
+To run locally: `npm run dev` (from the repo root).
+
+## Deploy
+
+The app is at the repo root, so Vercel builds it directly — `git push` to the
+connected project auto-deploys. No env vars required (public fallbacks baked
+in). If Vercel doesn't auto-detect the framework, set Framework Preset =
+Next.js.
 
 ## Routes
 
-- `/` landing · `/enter` costume entry · `/vote` gallery (placeholder)
-- `/live` Party Mode (placeholder) · `/admin` host (placeholder)
+- `/` landing · `/enter` costume entry · `/vote` gallery + detail + reactions
+- `/live` Party Mode (Realtime + reveal) · `/admin` host control room
 - `GET /api/state` phase/settings/categories · `GET|POST /api/entries` list/create
 - `GET /api/my?device_id=` this device's ballot · `POST|DELETE /api/vote` cast/clear
 - `POST /api/react` toggle reaction · `GET /api/results` standings for `/live`
