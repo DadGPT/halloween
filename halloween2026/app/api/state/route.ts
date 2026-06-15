@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createRouteClient } from "@/lib/supabase/route";
 
 // Single source of truth for the client: current phase, settings, categories.
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const supabase = createAdminClient();
+    const supabase = createRouteClient();
     const [settingsRes, phaseRes, categoriesRes] = await Promise.all([
       supabase.from("contest_settings").select("*").eq("id", 1).single(),
       supabase.rpc("current_phase"),

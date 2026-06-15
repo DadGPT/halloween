@@ -18,10 +18,13 @@ Express app in the repo root.
   (`lib/device.ts`) ties entries/votes/reactions to a device. Not a security
   boundary — hardened with one-ballot-per-device (DB unique constraint),
   self-vote block + phase gating (DB triggers), and Vercel BotID (later).
-- **One write path.** The browser uses the anon key for public reads and
-  Realtime only. ALL writes go through Next route handlers using the
-  service-role key, so device rules live in one place. RLS = public read,
-  no anon writes.
+- **Write path.** Reads are public (anon key + RLS). Guest writes (entries,
+  votes, reactions, photo upload) go through Next route handlers using the
+  **anon key** — the Supabase MCP exposes no service-role secret, so safety
+  that can't be bypassed lives in the DB: phase + self-vote **triggers** and
+  the one-ballot-per-device **unique constraint**. Anon write policies are
+  intentionally open (the accepted frictionless risk). The service-role path
+  (`lib/supabase/admin.ts`) is reserved for admin features later.
 - **Phase** (`preshow` → `voting` → `closed`) comes from `contest_settings`
   via the `current_phase()` SQL function; `/api/state` exposes it to clients.
 
@@ -45,15 +48,16 @@ Express app in the repo root.
 | 5 | PWA + offline queue, image polish, dry-run | ▢ |
 | — | QR-at-door tokens | ▢ later (optional) |
 
-## Setup (to run locally)
+## Backend (provisioned + verified)
 
-1. Create a Supabase project; run `supabase/migrations/0001_init.sql`.
-2. Create a **public** Storage bucket named `costumes`.
-3. Copy `.env.local.example` → `.env.local`, fill in URL + anon + service-role keys.
-4. `npm run dev`.
+Supabase project **`halloween-contest-2026`** (ref `bmvhcfrxosgvdipdkomb`,
+us-east-1, Nonfiction Agency org, $10/mo). Migrations `0001` + `0002` applied;
+public `costumes` bucket created. Verified live: `/api/state` reads the DB,
+`POST /api/entries` uploads to Storage + inserts, photo is publicly readable,
+and the phase trigger blocks votes during preshow. `.env.local` holds the
+project URL + publishable key (gitignored).
 
-> Supabase project is not yet provisioned — that's a billable external step
-> awaiting the go-ahead. The app compiles without it; it needs the env vars to run.
+To run locally: `npm run dev` (from `halloween2026/`).
 
 ## Routes
 

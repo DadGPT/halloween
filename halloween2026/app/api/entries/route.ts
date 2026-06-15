@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createRouteClient } from "@/lib/supabase/route";
 import { BUCKET } from "@/lib/constants";
 
 // Create a costume entry: upload the (already client-compressed) photo to
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       return bad("Please add a photo.");
     if (!file.type.startsWith("image/")) return bad("That file isn't an image.");
 
-    const supabase = createAdminClient();
+    const supabase = createRouteClient();
 
     const ext = (file.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
     const path = `${deviceId}/${crypto.randomUUID()}.${ext}`;
