@@ -185,57 +185,169 @@ export default function KaraokePage() {
       </div>
 
       {/* Queue */}
-      <div className="mt-6 flex flex-col gap-2">
-        {songs.length === 0 ? (
-          <div className="mt-10 flex flex-col items-center text-center">
-            <Music2 className="size-10 text-ember-400" />
-            <p className="mt-4 text-lg font-medium text-parchment">
-              No songs yet
-            </p>
-            <p className="mt-1 text-parchment-dim">
-              Be the first to grab the mic.
-            </p>
-          </div>
-        ) : (
-          songs.map((s, i) => {
-            const isMine = s.device_id === deviceId;
-            return (
-              <div
-                key={s.id}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl p-3",
-                  isMine ? "bg-ember-500/10 ring-1 ring-ember-400/40" : "bg-night-700 hairline",
-                )}
-              >
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-night-800 font-display text-lg font-semibold text-ember-300">
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-parchment">
-                    {s.title}
-                    {s.artist && (
-                      <span className="text-parchment-dim"> · {s.artist}</span>
-                    )}
-                  </p>
-                  <p className="truncate text-sm text-parchment-dim">
-                    {s.singer}
-                    {isMine && <span className="text-ember-300"> · You</span>}
-                  </p>
-                </div>
-                {isMine && (
-                  <button
-                    onClick={() => remove(s.id)}
-                    aria-label="Remove song"
-                    className="flex size-9 items-center justify-center rounded-lg text-parchment-dim hover:bg-danger/20 hover:text-danger"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                )}
+      {songs.length === 0 ? (
+        <div className="mt-10 flex flex-col items-center text-center">
+          <Music2 className="size-10 text-ember-400" />
+          <p className="mt-4 text-lg font-medium text-parchment">No songs yet</p>
+          <p className="mt-1 text-parchment-dim">Be the first to grab the mic.</p>
+        </div>
+      ) : (
+        <div className="mt-6 flex flex-col gap-6">
+          <section>
+            <SectionLabel pulse>Now singing</SectionLabel>
+            <NowSinging
+              song={songs[0]}
+              mine={songs[0].device_id === deviceId}
+              onRemove={() => remove(songs[0].id)}
+            />
+          </section>
+
+          {songs[1] && (
+            <section>
+              <SectionLabel>On deck</SectionLabel>
+              <DeckCard
+                song={songs[1]}
+                mine={songs[1].device_id === deviceId}
+                onRemove={() => remove(songs[1].id)}
+              />
+            </section>
+          )}
+
+          {songs.length > 2 && (
+            <section>
+              <SectionLabel>Up next</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {songs.slice(2).map((s, i) => {
+                  const isMine = s.device_id === deviceId;
+                  return (
+                    <div
+                      key={s.id}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl p-3",
+                        isMine
+                          ? "bg-ember-500/10 ring-1 ring-ember-400/40"
+                          : "bg-night-700 hairline",
+                      )}
+                    >
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-night-800 font-display text-lg font-semibold text-ember-300">
+                        {i + 3}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-parchment">
+                          {s.title}
+                          {s.artist && (
+                            <span className="text-parchment-dim"> · {s.artist}</span>
+                          )}
+                        </p>
+                        <p className="truncate text-sm text-parchment-dim">
+                          {s.singer}
+                          {isMine && <span className="text-ember-300"> · You</span>}
+                        </p>
+                      </div>
+                      {isMine && <RemoveBtn onClick={() => remove(s.id)} />}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })
-        )}
-      </div>
+            </section>
+          )}
+        </div>
+      )}
     </main>
+  );
+}
+
+function SectionLabel({
+  children,
+  pulse,
+}: {
+  children: React.ReactNode;
+  pulse?: boolean;
+}) {
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      {pulse && (
+        <motion.span
+          animate={{ opacity: [1, 0.3, 1] }}
+          transition={{ duration: 1.6, repeat: Infinity }}
+          className="size-2 rounded-full bg-ember-500"
+        />
+      )}
+      <span className="text-xs font-medium uppercase tracking-[0.22em] text-parchment-dim">
+        {children}
+      </span>
+    </div>
+  );
+}
+
+function NowSinging({
+  song,
+  mine,
+  onRemove,
+}: {
+  song: KaraokeSong;
+  mine: boolean;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-card bg-gradient-to-br from-ember-500/25 to-night-700 p-5 shadow-ember ring-1 ring-ember-400/50">
+      <div className="flex items-start gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-ember-500 text-night-900">
+          <Mic2 className="size-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-2xl font-semibold leading-tight text-parchment">
+            {song.title}
+          </p>
+          {song.artist && <p className="text-parchment-dim">{song.artist}</p>}
+          <p className="mt-1 font-medium text-ember-300">
+            {song.singer}
+            {mine && " · You"}
+          </p>
+        </div>
+        {mine && <RemoveBtn onClick={onRemove} />}
+      </div>
+    </div>
+  );
+}
+
+function DeckCard({
+  song,
+  mine,
+  onRemove,
+}: {
+  song: KaraokeSong;
+  mine: boolean;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-card bg-night-700 hairline p-4">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-night-800 text-ember-300">
+        <Mic2 className="size-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium text-parchment">
+          {song.title}
+          {song.artist && <span className="text-parchment-dim"> · {song.artist}</span>}
+        </p>
+        <p className="truncate text-sm text-parchment-dim">
+          {song.singer}
+          {mine && <span className="text-ember-300"> · You</span>}
+        </p>
+      </div>
+      {mine && <RemoveBtn onClick={onRemove} />}
+    </div>
+  );
+}
+
+function RemoveBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Remove song"
+      className="flex size-9 shrink-0 items-center justify-center rounded-lg text-parchment-dim hover:bg-danger/20 hover:text-danger"
+    >
+      <Trash2 className="size-4" />
+    </button>
   );
 }

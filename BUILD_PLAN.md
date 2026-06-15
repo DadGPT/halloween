@@ -82,6 +82,7 @@ Next.js.
 - `POST /api/react` toggle reaction · `GET /api/results` standings for `/live`
 - `POST /api/admin` host actions (passcode-gated → SECURITY DEFINER RPCs)
 - `GET|POST|DELETE /api/karaoke` queue · `GET|POST /api/memories` past-party photos
+- `GET /api/memories/download?id=` save-to-device (Content-Disposition attachment)
 
 ## Host passcode
 

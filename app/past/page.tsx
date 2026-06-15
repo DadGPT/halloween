@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Images } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Images, X, Download } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import type { Memory } from "@/lib/types";
 
 export default function PastPartiesPage() {
   const [memories, setMemories] = useState<Memory[] | null>(null);
+  const [selected, setSelected] = useState<Memory | null>(null);
 
   useEffect(() => {
     fetch("/api/memories")
@@ -34,7 +37,7 @@ export default function PastPartiesPage() {
         Memories
       </h1>
       <p className="mt-2 text-parchment-dim">
-        A look back at Halloweens gone by.
+        A look back at Halloweens gone by. Tap any photo to view or save it.
       </p>
 
       {memories === null ? (
@@ -65,9 +68,10 @@ export default function PastPartiesPage() {
               </h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {photos.map((m) => (
-                  <figure
+                  <button
                     key={m.id}
-                    className="overflow-hidden rounded-card hairline bg-night-800"
+                    onClick={() => setSelected(m)}
+                    className="group overflow-hidden rounded-card hairline bg-night-800 text-left"
                   >
                     <div className="relative aspect-square">
                       {m.photo_url && (
@@ -76,22 +80,76 @@ export default function PastPartiesPage() {
                           alt={m.caption || `Halloween ${year}`}
                           fill
                           sizes="(max-width: 640px) 50vw, 33vw"
-                          className="object-cover"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       )}
                     </div>
                     {m.caption && (
-                      <figcaption className="px-3 py-2 text-sm text-parchment-dim">
+                      <p className="px-3 py-2 text-sm text-parchment-dim">
                         {m.caption}
-                      </figcaption>
+                      </p>
                     )}
-                  </figure>
+                  </button>
                 ))}
               </div>
             </section>
           ))}
         </div>
       )}
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 flex flex-col bg-night-900/95 backdrop-blur-sm"
+            onClick={() => setSelected(null)}
+          >
+            <div className="flex items-center justify-between px-4 py-3">
+              <span className="text-sm font-medium text-gold-300">
+                {selected.year}
+              </span>
+              <button
+                onClick={() => setSelected(null)}
+                aria-label="Close"
+                className="flex size-9 items-center justify-center rounded-full bg-night-700 text-parchment"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div
+              className="flex flex-1 items-center justify-center overflow-hidden px-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selected.photo_url ?? ""}
+                alt={selected.caption || `Halloween ${selected.year}`}
+                className="max-h-full w-auto max-w-full rounded-lg object-contain"
+              />
+            </div>
+
+            <div
+              className="flex flex-col items-center gap-3 px-4 pb-7 pt-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {selected.caption && (
+                <p className="text-center text-parchment-dim">{selected.caption}</p>
+              )}
+              <a
+                href={`/api/memories/download?id=${selected.id}`}
+                download
+                className={buttonVariants({ variant: "primary", size: "md" })}
+              >
+                <Download className="size-5" /> Download
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
