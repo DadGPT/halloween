@@ -44,8 +44,9 @@ Express app in the repo root.
 | 1 | Costume entry (camera-first, compress, upload) | ✅ done |
 | 2 | Vote gallery + costume detail + reactions | ✅ done |
 | 3 | Party Mode `/live` (Realtime tallies + winner reveal) | ✅ done |
-| 4 | Host `/admin` (phase control, moderation, reveal) | ▢ next |
-| 5 | PWA + offline queue, image polish, dry-run | ▢ |
+| 4 | Host `/admin` (phase control, moderation, reveal) | ✅ done |
+| 5 | PWA + offline queue, image polish, dry-run | ▢ next |
+| — | Deploy to Vercel (env vars + domain) | ▢ |
 | — | QR-at-door tokens | ▢ later (optional) |
 
 ## Backend (provisioned + verified)
@@ -66,3 +67,10 @@ To run locally: `npm run dev` (from `halloween2026/`).
 - `GET /api/state` phase/settings/categories · `GET|POST /api/entries` list/create
 - `GET /api/my?device_id=` this device's ballot · `POST|DELETE /api/vote` cast/clear
 - `POST /api/react` toggle reaction · `GET /api/results` standings for `/live`
+- `POST /api/admin` host actions (passcode-gated → SECURITY DEFINER RPCs)
+
+## Host passcode
+
+Admin (`/admin`) is gated by a passcode stored in the DB (`app_config`),
+defaulting to **`boo-2026`**. Change it before the event:
+`update app_config set value = 'your-passcode' where key = 'admin_passcode';`
