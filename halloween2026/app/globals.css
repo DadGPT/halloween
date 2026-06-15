@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* ============================================================
+   HALLOWEEN 2026 — DESIGN SYSTEM
+   "A beautifully made invitation, not a nightclub flyer."
+   Premium, warm, photography-forward. Dark-native.
+   ============================================================ */
+
+@theme {
+  /* — Base surfaces (warm near-black, NOT neon purple) — */
+  --color-night-900: #0b0a0c; /* page base */
+  --color-night-800: #131115; /* raised surface */
+  --color-night-700: #1c191e; /* cards */
+  --color-night-600: #2a262d; /* borders / hairlines */
+  --color-night-500: #3a353e; /* strong border */
+
+  /* — Ember (primary accent) — */
+  --color-ember-600: #c63d18;
+  --color-ember-500: #e54b22; /* primary */
+  --color-ember-400: #ff6a3d;
+  --color-ember-300: #ff8a63;
+
+  /* — Gold (reserved for awards / winners ONLY) — */
+  --color-gold-500: #d9a441;
+  --color-gold-400: #e8c474;
+  --color-gold-300: #f3dca1;
+
+  /* — Text (warm off-white, never pure #fff) — */
+  --color-parchment: #f5efe6;
+  --color-parchment-dim: #cabfb1;
+  --color-muted: #8c8278;
+
+  /* — Functional — */
+  --color-confirm: #6f9a6a; /* "voted" — muted moss, not neon green */
+  --color-danger: #c0392b;
+
+  /* — Type — */
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-geist-sans);
+
+  /* — Radius scale — */
+  --radius-card: 1.25rem;
+
+  /* — Shadows — */
+  --shadow-lift: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 20px 50px -20px rgba(0, 0, 0, 0.8);
+  --shadow-ember: 0 12px 40px -12px rgba(229, 75, 34, 0.45);
+}
+
+/* ------------------------------------------------------------ */
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-night-900);
+  color: var(--color-parchment);
+  font-family: var(--font-sans);
+  /* warm depth: a soft ember glow from the top, vignette to black */
+  background-image:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      rgba(229, 75, 34, 0.1) 0%,
+      rgba(229, 75, 34, 0.03) 28%,
+      transparent 60%
+    ),
+    radial-gradient(100% 100% at 50% 120%, rgba(0, 0, 0, 0.55), transparent 70%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle film grain — the "made with care" texture. Fixed, non-interactive. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Display type: Fraunces shines at large optical sizes */
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
+
+:where(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+/* Respect reduced motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Accessible, on-brand focus ring */
+:where(button, a, [role="button"], input, textarea):focus-visible {
+  outline: 2px solid var(--color-ember-400);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Faint hairline border used on cards */
+@utility hairline {
+  border: 1px solid color-mix(in srgb, var(--color-night-500) 70%, transparent);
+}
