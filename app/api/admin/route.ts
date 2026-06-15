@@ -40,6 +40,37 @@ export async function POST(request: Request) {
         if (e?.photo_path) await supabase.storage.from(BUCKET).remove([e.photo_path]);
         break;
       }
+      case "clear_entries": {
+        const { data: rows } = await supabase.from("entries").select("photo_path");
+        await run(supabase.rpc("admin_clear_entries", { p: passcode }));
+        const paths = (rows ?? [])
+          .map((r) => r.photo_path)
+          .filter((p): p is string => !!p);
+        if (paths.length) await supabase.storage.from(BUCKET).remove(paths);
+        break;
+      }
+      case "reorder_karaoke":
+        await run(
+          supabase.rpc("admin_reorder_karaoke", { p: passcode, ids: payload?.ids ?? [] }),
+        );
+        break;
+      case "delete_karaoke":
+        if (!payload?.id)
+          return NextResponse.json({ error: "Missing id." }, { status: 400 });
+        await run(supabase.rpc("admin_delete_karaoke", { p: passcode, sid: payload.id }));
+        break;
+      case "delete_memory": {
+        if (!payload?.id)
+          return NextResponse.json({ error: "Missing id." }, { status: 400 });
+        const { data: m } = await supabase
+          .from("memories")
+          .select("photo_path")
+          .eq("id", payload.id)
+          .maybeSingle();
+        await run(supabase.rpc("admin_delete_memory", { p: passcode, mid: payload.id }));
+        if (m?.photo_path) await supabase.storage.from("memories").remove([m.photo_path]);
+        break;
+      }
       default:
         return NextResponse.json({ error: "Unknown action." }, { status: 400 });
     }

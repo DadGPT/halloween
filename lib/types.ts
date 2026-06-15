@@ -55,3 +55,23 @@ export type EntryWithScores = Entry & {
   votesByCategory: Record<string, number>;
   reactions: Record<string, number>;
 };
+
+export type KaraokeSong = {
+  id: string;
+  device_id: string;
+  singer: string;
+  title: string;
+  artist: string;
+  position: number;
+  created_at: string;
+};
+
+export type Memory = {
+  id: string;
+  year: string;
+  caption: string;
+  photo_path: string | null;
+  photo_url: string | null;
+  sort_order: number;
+  created_at: string;
+};

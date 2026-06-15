@@ -46,6 +46,7 @@ git history before commit `8f72b37`'s parent).
 | 2 | Vote gallery + costume detail + reactions | ✅ done |
 | 3 | Party Mode `/live` (Realtime tallies + winner reveal) | ✅ done |
 | 4 | Host `/admin` (phase control, moderation, reveal) | ✅ done |
+| + | Karaoke, Past Parties, global nav, clear-entries | ✅ done |
 | 5 | PWA + offline queue, image polish, dry-run | ▢ next |
 | — | Deploy to Vercel (env vars + domain) | ▢ |
 | — | QR-at-door tokens | ▢ later (optional) |
@@ -73,11 +74,14 @@ Next.js.
 ## Routes
 
 - `/` landing · `/enter` costume entry · `/vote` gallery + detail + reactions
+- `/karaoke` sign-up (≤2/device, live reorder notice) · `/past` memories gallery
 - `/live` Party Mode (Realtime + reveal) · `/admin` host control room
+- Global bottom nav across guest pages (hidden on `/enter`, `/live`, `/admin`)
 - `GET /api/state` phase/settings/categories · `GET|POST /api/entries` list/create
 - `GET /api/my?device_id=` this device's ballot · `POST|DELETE /api/vote` cast/clear
 - `POST /api/react` toggle reaction · `GET /api/results` standings for `/live`
 - `POST /api/admin` host actions (passcode-gated → SECURITY DEFINER RPCs)
+- `GET|POST|DELETE /api/karaoke` queue · `GET|POST /api/memories` past-party photos
 
 ## Host passcode
 

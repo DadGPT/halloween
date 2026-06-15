@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist } from "next/font/google";
 import "./globals.css";
+import { SiteNav } from "@/components/site-nav";
 
 // Display face — characterful, high-contrast. The "invitation" voice.
 const fraunces = Fraunces({
@@ -39,7 +40,10 @@ export default function RootLayout({
       lang="en"
       className={`${fraunces.variable} ${geist.variable} h-full antialiased`}
     >
-      <body className="relative min-h-full flex flex-col">{children}</body>
+      <body className="relative min-h-full flex flex-col">
+        {children}
+        <SiteNav />
+      </body>
     </html>
   );
 }

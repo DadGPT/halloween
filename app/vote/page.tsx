@@ -173,7 +173,7 @@ export default function VotePage() {
   );
 
   return (
-    <main className="relative z-10 mx-auto w-full max-w-2xl flex-1 px-5 pb-16 pt-6">
+    <main className="relative z-10 mx-auto w-full max-w-2xl flex-1 px-5 pb-28 pt-6">
       <div className="flex items-center justify-between">
         <Link
           href="/"

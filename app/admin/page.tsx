@@ -14,6 +14,8 @@ import {
   Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { KaraokeManager } from "@/components/admin/karaoke-manager";
+import { MemoriesManager } from "@/components/admin/memories-manager";
 import { cn } from "@/lib/utils";
 import type { Phase } from "@/lib/types";
 
@@ -296,23 +298,54 @@ function Dashboard({
         )}
       </Section>
 
+      {/* Karaoke */}
+      <Section title="Karaoke lineup">
+        <KaraokeManager passcode={passcode} />
+      </Section>
+
+      {/* Past parties */}
+      <Section title="Past parties">
+        <MemoriesManager passcode={passcode} />
+      </Section>
+
       {/* Danger */}
       <Section title="Danger zone">
-        <button
-          onClick={() => {
-            if (confirm("Reset ALL votes? This cannot be undone."))
-              act("reset_votes", undefined, "reset");
-          }}
-          disabled={!!busy}
-          className="inline-flex items-center gap-2 rounded-xl border border-danger/40 px-4 py-3 text-sm font-medium text-danger hover:bg-danger/10"
-        >
-          {busy === "reset" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <RotateCcw className="size-4" />
-          )}
-          Reset all votes
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => {
+              if (confirm("Reset ALL votes? This cannot be undone."))
+                act("reset_votes", undefined, "reset");
+            }}
+            disabled={!!busy}
+            className="inline-flex items-center gap-2 rounded-xl border border-danger/40 px-4 py-3 text-sm font-medium text-danger hover:bg-danger/10"
+          >
+            {busy === "reset" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <RotateCcw className="size-4" />
+            )}
+            Reset all votes
+          </button>
+          <button
+            onClick={() => {
+              if (
+                confirm(
+                  "Delete ALL costume entries (and their votes)? This cannot be undone.",
+                )
+              )
+                act("clear_entries", undefined, "clear");
+            }}
+            disabled={!!busy}
+            className="inline-flex items-center gap-2 rounded-xl border border-danger/40 px-4 py-3 text-sm font-medium text-danger hover:bg-danger/10"
+          >
+            {busy === "clear" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Trash2 className="size-4" />
+            )}
+            Clear all entries
+          </button>
+        </div>
       </Section>
     </main>
   );
